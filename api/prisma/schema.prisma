@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  nombre        String?
+  rol           String    @default("usuario")
+  bloqueado     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  
+  sorteos       Sorteo[]
+}
+
+model Sorteo {
+  id                String        @id @default(uuid())
+  titulo            String
+  urlPublicacion    String
+  redSocial         String
+  cantidadGanadores Int
+  cantidadSuplentes Int
+  estado            String        @default("pendiente")
+  hashVerificacion  String?
+  timestamp         String?
+  participantesHash  String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  usuarioId         String
+  usuario           Usuario       @relation(fields: [usuarioId], references: [id])
+  
+  participantes     Participante[]
+  certificados      Certificado[]
+}
+
+model Participante {
+  id            String   @id @default(uuid())
+  usuarioExterno String
+  createdAt     DateTime @default(now())
+  
+  sorteoId      String
+  sorteo        Sorteo   @relation(fields: [sorteoId], references: [id])
+  
+  @@unique([sorteoId, usuarioExterno])
+}
+
+model Certificado {
+  id         String   @id @default(uuid())
+  ganadores  String   // JSON array
+  suplentes  String   // JSON array
+  createdAt  DateTime @default(now())
+  
+  sorteoId   String   @unique
+  sorteo     Sorteo   @relation(fields: [sorteoId], references: [id])
+}
