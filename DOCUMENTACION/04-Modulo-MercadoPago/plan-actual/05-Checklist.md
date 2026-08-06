@@ -48,15 +48,30 @@
 - [x] Configurar variables de entorno
 - [x] Integrar en api/src/index.ts
 
+### Pase Rápido con MercadoPago (04/08, Log 24)
+- [x] Restaurar `shared-modules/mercadopago` en el repo (estaba sola como junction rota)
+- [x] Corregir dependencia de `api/package.json`: `file:../../shared-modules/...` → `file:../shared-modules/...`
+- [x] Exportar e implementar `createPayment` en el módulo compartido (+ reintento de build dist)
+- [x] Modelo Prisma `PagoPase` + migración `20260803150000_pago_pase` aplicada
+- [x] `api/src/lib/pases.ts` (crearPase, guardarPreferenciaMp, aprobarPase, rechazarPase, estadoPase, validarPase, consumirPase, PaseInvalidoError)
+- [x] Rutas `api/src/routes/pagos.ts`: POST /pase, GET /pase/:id, POST /webhook, POST /verificar
+- [x] `paseId` + validación en `preview.ts` y `sorteos-service.ts` (402 `pase_invalido`, consumo al crear sorteo)
+- [x] Frontend: `crearPasePago`/`estadoPase`/`verificarPago`; wizard con redirect a checkout y restore post-pago; página de retorno `/pago`
+- [x] Typecheck api y web OK
+- [x] E2E offline: pase aprobado → sorteo creado → pase consumido; reuso → 402
+- [x] **Fixes de integración MP (05/08, Log 36)**: URL base SIEMPRE `https://api.mercadopago.com` (el host `/sandbox` no existe; el sandbox se identifica por el token TEST-); `notification_url` ahora usa `MERCADO_PAGO_NOTIFICATION_URL` o `API_BASE_URL/api/pagos/webhook` (antes apuntaba a una ruta no montada); `verifyWebhookSignature` corregida al formato real de MP (manifest `id:...;request-id:...;ts:...;` con HMAC-SHA256 + timingSafeEqual); webhook valida la firma si hay secret (401 si inválida); `pase = pase` eliminado. Tests: `pagos.spec.ts` 5/5 (firma válida/alterada/sin request-id/uppercase/header malformado)
+- [ ] Prueba en sandbox de Mercado Pago (E2E del checkout real) — **bloqueado: `MERCADO_PAGO_ACCESS_TOKEN` en `.env` es placeholder inválido (401/403); pegar un token TEST- real de developers.mercadopago.com**
+
 ## Tareas Pendientes
 
 ### Testing
-- [ ] Crear plan de testings
-- [ ] Ejecutar tests unitarios
-- [ ] Ejecutar tests de integración
-- [ ] Test en sandbox de Mercado Pago
+- [x] Crear plan de testings
+- [x] Ejecutar tests unitarios
+- [x] Ejecutar tests de integración
+- [x] Unit tests de firma de webhooks (05/08, Log 36): 5/5 en `pagos.spec.ts`
+- [ ] Test en sandbox de Mercado Pago (bloqueado por token placeholder)
 - [ ] Test webhooks reales
-- [ ] Documentar resultados de tests
+- [x] Documentar resultados de tests (E2E offline en Log 24)
 
 ### Documentación
 - [ ] Completar README.md con ejemplos

@@ -25,6 +25,15 @@ api/build/
 api/*.tsbuildinfo
 
 # =============================================================================
+# Sesión de Instagram guardada (NUNCA subir credenciales)
+# =============================================================================
+api/.instagram-session.json
+api/.instagram-session-info.json
+
+# Snapshots de capturas para comparacion (datos de publicaciones ajenas)
+api/capturas/
+
+# =============================================================================
 # Variables de entorno (NUNCA subir credenciales)
 # =============================================================================
 .env
@@ -108,3 +117,22 @@ coverage/
 # =============================================================================
 *.tsbuildinfo
 next-env.d.ts
+
+# =============================================================================
+# Base de datos (credenciales y datos locales)
+# =============================================================================
+BASE DE DATOS/
+BASE DE DATOS/base de datos.txt
+
+# =============================================================================
+# Agentes / Skills (configuración local)
+# =============================================================================
+.agents/
+.devin/
+skills-lock.json
+
+# =============================================================================
+# Archivos temporales y de prueba
+# =============================================================================
+Scripts/
+prueba.md

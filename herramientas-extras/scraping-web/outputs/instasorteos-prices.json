@@ -1,0 +1,88 @@
+{
+  "url": "https://instasorteos.com/prices",
+  "fetchedAt": "2026-08-01T22:09:35.486Z",
+  "bodyText": "prices works!",
+  "priceCandidates": [
+    {
+      "tag": "title",
+      "cls": "",
+      "text": "Sortealo.app - Haz sorteos en Instagram gratis, fácil y sin registro."
+    }
+  ],
+  "apiResponses": [
+    {
+      "url": "https://instasorteos.com/assets/lottie/splashscreen.json",
+      "status": 200
+    },
+    {
+      "url": "https://instasorteos.com/assets/lottie/loader.json",
+      "status": 200
+    },
+    {
+      "url": "https://us-central1-instasorteos-f082a.cloudfunctions.net/miloc",
+      "status": 200
+    },
+    {
+      "url": "https://stats.g.doubleclick.net/g/collect?v=2&tid=G-KNQSJBBL0B&cid=406879474.1785622130&gtm=45be67t1v894067532za200zd894067532&rcb=4&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=115938466~115938468~118897920~118897930~119896802",
+      "status": 204
+    },
+    {
+      "url": "https://v1.api.service.cmp.usercentrics.eu/latest/core/RhasxjAjasFKxY",
+      "status": 200
+    },
+    {
+      "url": "https://v1.api.service.cmp.usercentrics.eu/latest/1/cmp/es/GDPR/RhasxjAjasFKxY/1.0.9/1.0.9?isOutsideEu=true",
+      "status": 200
+    },
+    {
+      "url": "https://www.googleadservices.com/pagead/conversion/10789716067/?random=1785622130963&cv=11&fst=1785622130963&fmt=7&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be67t1v894067532z8893989561za200zd894067532xea&gcs=G111&gcd=13r3r3r3r5l1&dma=0&tag_exp=115938466~115938468~118897920~118897930~119896802&u_w=1280&u_h=1800&url=https%3A%2F%2Finstasorteos.com%2Fprices&rcb=4&label=tNAWCNCIw4UZEOOA-Jgo&frm=0&tiba=Sortealo.app%20-%20Haz%20sorteos%20en%20Instagram%20gratis%2C%20f%C3%A1cil%20y%20sin%20registro.&did=dOThhZD&gdid=dOThhZD&bttype=purchase&value=0&hn=www.googleadservices.com&npa=0&pscdl=noapi&uaa=x86&uab=64&uafvl=Not%253DA%253FBrand%3B99.0.0.0%7CHeadlessChrome%3B151.0.7922.34%7CChromium%3B151.0.7922.34&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&_tu=CA&capi=1&gcu=1&auid=2071237979.1785622130&gcl_ctr=1~0~0~0&data=ads_data_redaction%3Dfalse&category=acrcp_v1_512&ept=5",
+      "status": 200
+    },
+    {
+      "url": "https://www.googleadservices.com/pagead/conversion/10789716067/?random=1785622130965&cv=11&fst=1785622130965&fmt=7&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be67t1v894067532z8893989561za200zd894067532xea&gcs=G111&gcd=13r3r3r3r5l1&dma=0&tag_exp=115938466~115938468~118897920~118897930~119896802&u_w=1280&u_h=1800&url=https%3A%2F%2Finstasorteos.com%2Fprices&rcb=4&label=PSDCCID-zrsZEOOA-Jgo&frm=0&tiba=Sortealo.app%20-%20Haz%20sorteos%20en%20Instagram%20gratis%2C%20f%C3%A1cil%20y%20sin%20registro.&did=dOThhZD&gdid=dOThhZD&bttype=purchase&value=0&hn=www.googleadservices.com&npa=0&pscdl=noapi&uaa=x86&uab=64&uafvl=Not%253DA%253FBrand%3B99.0.0.0%7CHeadlessChrome%3B151.0.7922.34%7CChromium%3B151.0.7922.34&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&_tu=CA&capi=1&gcu=1&auid=2071237979.1785622130&gcl_ctr=2~0~0~0&data=ads_data_redaction%3Dfalse&category=acrcp_v1_512&ept=5",
+      "status": 200
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1281365897508752&ev=PageView&dl=https%3A%2F%2Finstasorteos.com%2Fprices&rl=&if=false&ts=1785622131553&iw=false&sw=1280&sh=1800&v=2.9.368&r=stable&a=tmSimo-GTM-WebTemplate-2.0.5&ec=0&o=4126&aems=0%3B0&fbp=fb.1.1785622131549.498994357914068059&ler=empty&pmd[title]=Sortealo.app%20-%20Haz%20sorteos%20en%20Instagram%20gratis%2C%20f%C3%A1cil%20y%20sin%20registro.&pmd[locale]=es&pmd[description]=Haz%20tu%20sorteo%20en%20Instagram%20gratis%2C%20sin%20apps%20ni%20registro%20y%20elige%20ganadores%20al%20instante%20con%20Sortealo.app.&plt=2602.399999976158&iss=1&imft=1&tz=-180&it=1785622131248&coo=false&tm=1&expv2[0]=pl1&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=ct2&expv2[6]=hf1&expv2[7]=sd1&expv2[8]=sp1&expv2[9]=ek1&expv2[10]=pc1&expv2[11]=gs1&expv2[12]=zs1&expv2[13]=cp1&expv2[14]=es1&expv2[15]=ac1&expv2[16]=so1&expv2[17]=wc1&expv2[18]=la1&expv2[19]=sf1&expv2[20]=da1&expv2[21]=io1&expv2[22]=ae1&expv2[23]=sx1&expv2[24]=if1&expv2[25]=fd1&expv2[26]=bg1&expv2[27]=mg1&expv2[28]=kl1&expv2[29]=sg1&expv2[30]=mk1&expv2[31]=sn1&expv2[32]=ec1&expv2[33]=mp1&expv2[34]=ps1&expv2[35]=fx1&expv2[36]=vt1&rqm=GET",
+      "status": 200
+    }
+  ],
+  "apiBodiesSample": [
+    {
+      "url": "https://instasorteos.com/assets/lottie/splashscreen.json",
+      "bodyPreview": "{\"assets\":[{\"id\":\"5\",\"layers\":[{\"ind\":4,\"ty\":4,\"ks\":{},\"ip\":0,\"op\":97,\"st\":0,\"shapes\":[{\"ty\":\"rc\",\"p\":{\"a\":0,\"k\":[9,7]},\"r\":{\"a\":0,\"k\":0},\"s\":{\"a\":0,\"k\":[18,14]}},{\"ty\":\"fl\",\"c\":{\"a\":0,\"k\":[0,0,0,0]},\"o\":{\"a\":0,\"k\":0}}]},{\"ind\":0,\"ty\":4,\"ks\":{\"s\":{\"a\":0,\"k\":[133.33,133.33]}},\"ip\":0,\"op\":97,\"st\":0,\"shapes\":[{\"ty\":\"gr\",\"it\":[{\"ty\":\"gr\",\"it\":[{\"ty\":\"sh\",\"ks\":{\"a\":0,\"k\":{\"c\":true,\"i\":[[0,0],[1.02,0.42],[0.58,0.77],[0,1.1],[-0.58,0.79],[-1,0.41],[-1.3,0],[-1,-0.42],[-0.58,-0.79],[0,-1.1],[0.58,-0.79]"
+    },
+    {
+      "url": "https://instasorteos.com/assets/lottie/loader.json",
+      "bodyPreview": "{\"v\":\"5.5.10\",\"fr\":29.9700012207031,\"ip\":0,\"op\":60.0000024438501,\"w\":124,\"h\":124,\"nm\":\"loader\",\"ddd\":0,\"assets\":[],\"layers\":[{\"ddd\":0,\"ind\":1,\"ty\":4,\"nm\":\"Shape Layer 2\",\"sr\":1,\"ks\":{\"o\":{\"a\":0,\"k\":100,\"ix\":11},\"r\":{\"a\":1,\"k\":[{\"i\":{\"x\":[0.833],\"y\":[0.833]},\"o\":{\"x\":[0.167],\"y\":[0.167]},\"t\":0,\"s\":[0]},{\"t\":60.0000024438501,\"s\":[360]}],\"ix\":10},\"p\":{\"a\":0,\"k\":[62,62,0],\"ix\":2},\"a\":{\"a\":0,\"k\":[0.576,4.576,0],\"ix\":1},\"s\":{\"a\":0,\"k\":[100,100,100],\"ix\":6}},\"ao\":0,\"shapes\":[{\"ty\":\"gr\",\"it\":[{\"d\":1,\"ty"
+    },
+    {
+      "url": "https://us-central1-instasorteos-f082a.cloudfunctions.net/miloc",
+      "bodyPreview": "{\"isArgentina\":true,\"country\":\"Argentina\",\"ip\":\"2803:6603:9405:de00:1328:73e7:355d:c8dd\"}"
+    },
+    {
+      "url": "https://stats.g.doubleclick.net/g/collect?v=2&tid=G-KNQSJBBL0B&cid=406879474.1785622130&gtm=45be67t1v894067532za200zd894067532&rcb=4&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=115938466~115938468~118897920~118897930~119896802",
+      "bodyPreview": ""
+    },
+    {
+      "url": "https://v1.api.service.cmp.usercentrics.eu/latest/core/RhasxjAjasFKxY",
+      "bodyPreview": "{\"id\":\"RhasxjAjasFKxY\",\"version\":\"1.0.9\",\"languages\":[\"es\"],\"cmp\":{\"version\":\"4.9.0\",\"type\":\"gdpr\"}}"
+    },
+    {
+      "url": "https://v1.api.service.cmp.usercentrics.eu/latest/1/cmp/es/GDPR/RhasxjAjasFKxY/1.0.9/1.0.9?isOutsideEu=true",
+      "bodyPreview": "{\"ui\":{\"closedView\":\"none\",\"theme\":\"uc\",\"initialView\":\"none\",\"language\":\"es\",\"dpsDisplayFormat\":\"ALL\",\"poweredByLogo\":\"UC\",\"lifecycleStatus\":\"active\",\"gpcSignalHonoured\":false},\"languages\":{\"languages\":{\"es\":{\"name\":\"Español\"}}},\"core\":{\"dataLayers\":[\"dataLayer\"],\"analyticsEnabled\":true,\"tagLoggerEnabled\":true,\"googleConsentModeEnabled\":true,\"advertiserConsentModeEnabled\":true},\"setting\":{\"id\":\"RhasxjAjasFKxY\",\"version\":\"1.0.9\",\"type\":\"GDPR\"},\"dps\":{\"categories\":{\"marketing\":{\"name\":\"Marketing\","
+    },
+    {
+      "url": "https://www.googleadservices.com/pagead/conversion/10789716067/?random=1785622130963&cv=11&fst=1785622130963&fmt=7&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be67t1v894067532z8893989561za200zd894067532xea&gcs=G111&gcd=13r3r3r3r5l1&dma=0&tag_exp=115938466~115938468~118897920~118897930~119896802&u_w=1280&u_h=1800&url=https%3A%2F%2Finstasorteos.com%2Fprices&rcb=4&label=tNAWCNCIw4UZEOOA-Jgo&frm=0&tiba=Sortealo.app%20-%20Haz%20sorteos%20en%20Instagram%20gratis%2C%20f%C3%A1cil%20y%20sin%20registro.&did=dOThhZD&gdid=dOThhZD&bttype=purchase&value=0&hn=www.googleadservices.com&npa=0&pscdl=noapi&uaa=x86&uab=64&uafvl=Not%253DA%253FBrand%3B99.0.0.0%7CHeadlessChrome%3B151.0.7922.34%7CChromium%3B151.0.7922.34&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&_tu=CA&capi=1&gcu=1&auid=2071237979.1785622130&gcl_ctr=1~0~0~0&data=ads_data_redaction%3Dfalse&category=acrcp_v1_512&ept=5",
+      "bodyPreview": "event: message\ndata: {\"fetch\":[\"https://googleads.g.doubleclick.net/pagead/viewthroughconversion/10789716067/?random=1930457694&cv=11&fst=1785622130963&fmt=8&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be67t1v894067532z8893989561za200zd894067532xea&gcs=G111&gcd=13r3r3r3r5l1&dma=0&tag_exp=115938466~115938468~118897920~118897930~119896802&u_w=1280&u_h=1800&url=https%3A%2F%2Finstasorteos.com%2Fprices&rcb=4&label=tNAWCNCIw4UZEOOA-Jgo&frm=0&tiba=Sortealo.app%20-%20Haz%20sorteos%20en%20Instagram%20g"
+    },
+    {
+      "url": "https://www.googleadservices.com/pagead/conversion/10789716067/?random=1785622130965&cv=11&fst=1785622130965&fmt=7&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be67t1v894067532z8893989561za200zd894067532xea&gcs=G111&gcd=13r3r3r3r5l1&dma=0&tag_exp=115938466~115938468~118897920~118897930~119896802&u_w=1280&u_h=1800&url=https%3A%2F%2Finstasorteos.com%2Fprices&rcb=4&label=PSDCCID-zrsZEOOA-Jgo&frm=0&tiba=Sortealo.app%20-%20Haz%20sorteos%20en%20Instagram%20gratis%2C%20f%C3%A1cil%20y%20sin%20registro.&did=dOThhZD&gdid=dOThhZD&bttype=purchase&value=0&hn=www.googleadservices.com&npa=0&pscdl=noapi&uaa=x86&uab=64&uafvl=Not%253DA%253FBrand%3B99.0.0.0%7CHeadlessChrome%3B151.0.7922.34%7CChromium%3B151.0.7922.34&uamb=0&uam=&uap=Windows&uapv=10.0&uaw=0&_tu=CA&capi=1&gcu=1&auid=2071237979.1785622130&gcl_ctr=2~0~0~0&data=ads_data_redaction%3Dfalse&category=acrcp_v1_512&ept=5",
+      "bodyPreview": "event: message\ndata: {\"fetch\":[\"https://googleads.g.doubleclick.net/pagead/viewthroughconversion/10789716067/?random=90652925&cv=11&fst=1785622130965&fmt=8&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be67t1v894067532z8893989561za200zd894067532xea&gcs=G111&gcd=13r3r3r3r5l1&dma=0&tag_exp=115938466~115938468~118897920~118897930~119896802&u_w=1280&u_h=1800&url=https%3A%2F%2Finstasorteos.com%2Fprices&rcb=4&label=PSDCCID-zrsZEOOA-Jgo&frm=0&tiba=Sortealo.app%20-%20Haz%20sorteos%20en%20Instagram%20gra"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1281365897508752&ev=PageView&dl=https%3A%2F%2Finstasorteos.com%2Fprices&rl=&if=false&ts=1785622131553&iw=false&sw=1280&sh=1800&v=2.9.368&r=stable&a=tmSimo-GTM-WebTemplate-2.0.5&ec=0&o=4126&aems=0%3B0&fbp=fb.1.1785622131549.498994357914068059&ler=empty&pmd[title]=Sortealo.app%20-%20Haz%20sorteos%20en%20Instagram%20gratis%2C%20f%C3%A1cil%20y%20sin%20registro.&pmd[locale]=es&pmd[description]=Haz%20tu%20sorteo%20en%20Instagram%20gratis%2C%20sin%20apps%20ni%20registro%20y%20elige%20ganadores%20al%20instante%20con%20Sortealo.app.&plt=2602.399999976158&iss=1&imft=1&tz=-180&it=1785622131248&coo=false&tm=1&expv2[0]=pl1&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=ct2&expv2[6]=hf1&expv2[7]=sd1&expv2[8]=sp1&expv2[9]=ek1&expv2[10]=pc1&expv2[11]=gs1&expv2[12]=zs1&expv2[13]=cp1&expv2[14]=es1&expv2[15]=ac1&expv2[16]=so1&expv2[17]=wc1&expv2[18]=la1&expv2[19]=sf1&expv2[20]=da1&expv2[21]=io1&expv2[22]=ae1&expv2[23]=sx1&expv2[24]=if1&expv2[25]=fd1&expv2[26]=bg1&expv2[27]=mg1&expv2[28]=kl1&expv2[29]=sg1&expv2[30]=mk1&expv2[31]=sn1&expv2[32]=ec1&expv2[33]=mp1&expv2[34]=ps1&expv2[35]=fx1&expv2[36]=vt1&rqm=GET",
+      "bodyPreview": ""
+    }
+  ]
+}

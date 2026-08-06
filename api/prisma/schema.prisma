@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -32,10 +32,10 @@ model Sorteo {
   participantesHash  String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
-  
-  usuarioId         String
-  usuario           Usuario       @relation(fields: [usuarioId], references: [id])
-  
+
+  usuarioId         String?
+  usuario           Usuario?      @relation(fields: [usuarioId], references: [id])
+
   participantes     Participante[]
   certificados      Certificado[]
 }
@@ -43,6 +43,7 @@ model Sorteo {
 model Participante {
   id            String   @id @default(uuid())
   usuarioExterno String
+  comentario    String?  @default("")
   createdAt     DateTime @default(now())
   
   sorteoId      String
@@ -59,4 +60,61 @@ model Certificado {
   
   sorteoId   String   @unique
   sorteo     Sorteo   @relation(fields: [sorteoId], references: [id])
+}
+
+// Cuota mensual de sorteos gratis de la nube (costo real de Apify por sorteo)
+model CuotaApify {
+  id        String   @id @default(uuid())
+  mes       String   @unique // "YYYY-MM" (el crédito de Apify se renueva el 1ro)
+  usos      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Pase Rápido pagado con MercadoPago: salta la cola cuando se agota la cuota
+// de sorteos gratis. Un pase aprobado se consume con UN sorteo (usadoEnSorteoId).
+model PagoPase {
+  id              String    @id @default(uuid())
+  monto           Int
+  moneda          String    @default("ARS")
+  estado          String    @default("pendiente") // pendiente | aprobado | rechazado | cancelado
+  preferenciaId   String?
+  pagoMpId        String?
+  usadoEnSorteoId String?
+  createdAt       DateTime  @default(now())
+  pagadoAt        DateTime?
+}
+
+// Cola de espera cuando la cuota del día se agota: se procesa en FIFO
+// cuando se libera cuota (recálculo diario o renovación mensual).
+model SolicitudCola {
+  id                String    @id @default(uuid())
+  urlPublicacion    String
+  redSocial         String
+  cantidadGanadores Int
+  cantidadSuplentes Int       @default(0)
+  eliminarDuplicados Boolean  @default(true)
+  estado            String    @default("pendiente") // pendiente | procesando | completado | fallido
+  posicion          Int       @default(0)
+  sorteoId          String?
+  resultado         String?   // JSON del resultado del sorteo
+  error             String?
+  createdAt         DateTime  @default(now())
+  procesadoAt       DateTime?
+}
+
+// Snapshot de una captura real (análisis o sorteo) para comparar después:
+// p. ej. cuando el dueño del post sortea con su sesión vs nuestro scrape
+// anónimo del mismo post. `participantes` guarda el JSON crudo completo.
+model Captura {
+  id                 String   @id @default(uuid())
+  tipo               String   // analizar | sorteo
+  urlPublicacion     String?
+  shortcode          String?
+  redSocial          String?
+  sesion             String   // manual | cookies | @usuario (guardada) | anonima
+  cantidadComentarios Int
+  participantesJson  String   // JSON.stringify(participantes[])
+  nota               String?
+  guardadoEn         DateTime @default(now())
 }

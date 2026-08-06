@@ -9,7 +9,7 @@
 - [x] Configurar variables de entorno
 - [x] Instalar dependencias
 
-### Autenticación
+### Autenticación (IMPLEMENTACIÓN FUTURA)
 - [x] Implementar sistema de JWT
 - [x] Implementar hashing con bcrypt
 - [x] Crear rutas de auth (register, login, /me)
@@ -19,8 +19,10 @@
 ### Sorteos
 - [x] Implementar motor de sorteos determinístico
 - [x] Implementar sistema de verificación con hash
-- [x] Crear rutas de sorteos (crear, listar, obtener)
-- [x] Implementar límite de 3 sorteos por mes
+- [x] Crear rutas de sorteos (crear, listar, obtener) SIN AUTH
+- [x] Eliminar límite de 3 sorteos por mes
+- [x] Implementar modelo de precios por cantidad de comentarios
+- [x] Hacer usuarioId nullable en schema de Prisma
 - [x] Corregir error de skipDuplicates para SQLite
 
 ### Scraping

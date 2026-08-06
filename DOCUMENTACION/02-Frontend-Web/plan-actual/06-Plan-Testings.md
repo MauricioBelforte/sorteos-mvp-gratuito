@@ -1,194 +1,76 @@
-# Plan de Testings - Frontend Web
+# Plan de Testings - Frontend Web (Mejora de Interfaz Gráfica)
+
+**Fecha:** 2026-08-02
+**Alcance:** Componentes UI base (Fase 2) y componentes features (Fase 3) + home refactorizada (Fase 4)
 
 ## Objetivo
-Identificar bugs y fallos antes de la primera prueba manual del usuario.
 
-## Tipos de Pruebas
+Verificar que la mejora de interfaz gráfica no rompió la funcionalidad de sorteos y que los nuevos componentes se renderizan correctamente.
 
-### 1. Pruebas Unitarias
+## 1. Pruebas de Compilación
 
-#### 1.1 Cliente API
-- **Test:** fetchAPI() con token válido
-  - Input: Token válido en localStorage
-  - Expected: Request exitoso con header Authorization
-  - Status: Pendiente
+| ID | Escenario | Criterio de Éxito |
+|----|-----------|-------------------|
+| B1 | `npm run build` en web/ | Compilación exitosa, sin errores de tipos |
+| B2 | Typecheck del proyecto completo | Todas las páginas (home, auth, dashboard, detalle) compilan |
 
-- **Test:** fetchAPI() sin token
-  - Input: Sin token en localStorage
-  - Expected: Redirección a /auth/login
-  - Status: Pendiente
+## 2. Pruebas Unitarias de Componentes (renderizado con react-dom/server)
 
-- **Test:** register() con datos válidos
-  - Input: `{ email, password, nombre }` válidos
-  - Expected: Usuario registrado, token guardado
-  - Status: Pendiente
+| ID | Escenario | Criterio de Éxito |
+|----|-----------|-------------------|
+| U1 | ResultCard con `{ sorteo: { ganadores: [...], hashVerificacion } }` | Renderiza ganador, hash monospace y botón copiar |
+| U2 | ResultCard con `{ requierePago: true, precio, moneda, cantidadComentarios }` | Renderiza mensaje, precio formateado y nota de pagos próximamente |
+| U3 | ResultCard con `null` | Retorna vacío SIN lanzar excepción |
+| U4 | SocialIcons | Renderiza 3 SVGs con aria-label y sin errores |
 
-- **Test:** login() con credenciales válidas
-  - Input: `{ email, password }` válidos
-  - Expected: Token guardado, redirección a dashboard
-  - Status: Pendiente
+## 3. Pruebas de Integración (Frontend ↔ Backend)
 
-#### 1.2 Componentes
-- **Test:** RegisterPage maneja submit
-  - Input: Formulario con datos válidos
-  - Expected: Llama a register(), redirige a dashboard
-  - Status: Pendiente
+| ID | Escenario | Criterio de Éxito |
+|----|-----------|-------------------|
+| I1 | POST /api/sorteos desde SorteoForm con URL de Instagram/TikTok/YouTube | Body correcto: urlPublicacion, redSocial, cantidadGanadores: 1, cantidadSuplentes: 0 |
+| I2 | Respuesta `{ sorteo }` del backend | ResultCard de éxito (verde) |
+| I3 | Respuesta `{ requierePago }` del backend | ResultCard de pago (amarilla) |
+| I4 | Respuesta `{ error }` (ej: 500) | Alert de error con mensaje del servidor |
+| I5 | Servidor apagado (error de red) | Alert "Error de conexión con el servidor" |
 
-- **Test:** LoginPage maneja submit
-  - Input: Formulario con datos válidos
-  - Expected: Llama a login(), redirige a dashboard
-  - Status: Pendiente
+## 4. Edge Cases
 
-- **Test:** DashboardPage carga sorteos
-  - Input: Usuario autenticado
-  - Expected: Carga sorteos del usuario
-  - Status: Pendiente
+| ID | Escenario | Criterio de Éxito |
+|----|-----------|-------------------|
+| E1 | URL vacía | Botón deshabilitado |
+| E2 | URL sin dominio soportado | Error visual en el input en tiempo real + botón deshabilitado |
+| E3 | URL de youtu.be | Detectada como YouTube |
+| E4 | Loading durante request | Spinner en botón + inputs deshabilitados |
+| E5 | Doble click en submit | Botón deshabilitado mientras loading |
+| E6 | Resultado previo + nuevo submit | Resultado se limpia al iniciar nuevo envío |
 
-### 2. Pruebas de Integración
+## 5. Responsive Design (requiere verificación manual)
 
-#### 2.1 Flujo Completo de Registro
-- **Test:** Registro → Dashboard
-  - Steps:
-    1. Acceder a /auth/register
-    2. Ingresar datos válidos
-    3. Submit formulario
-    4. Verificar redirección a dashboard
-    5. Verificar token en localStorage
-  - Expected: Flujo completo sin errores
-  - Status: Pendiente
+| ID | Escenario | Criterio de Éxito |
+|----|-----------|-------------------|
+| R1 | Móvil (< 640px) | Formulario y precios a 1 columna, sin desbordes horizontales |
+| R2 | Tablet (640-1024px) | Precios a 2 columnas |
+| R3 | Desktop (> 1024px) | Precios a 3 columnas, hero centrado |
 
-#### 2.2 Flujo Completo de Login
-- **Test:** Login → Dashboard
-  - Steps:
-    1. Acceder a /auth/login
-    2. Ingresar credenciales válidas
-    3. Submit formulario
-    4. Verificar redirección a dashboard
-    5. Verificar token en localStorage
-  - Expected: Flujo completo sin errores
-  - Status: Pendiente
+## 6. Accesibilidad
 
-#### 2.3 Flujo Completo de Sorteo
-- **Test:** Dashboard → Crear Sorteo → Detalle
-  - Steps:
-    1. Acceder a /dashboard
-    2. Ingresar datos de sorteo
-    3. Crear sorteo
-    4. Verificar sorteo en lista
-    5. Acceder a detalle
-    6. Verificar ganadores y hash
-  - Expected: Flujo completo sin errores
-  - Status: Pendiente
+| ID | Escenario | Criterio de Éxito |
+|----|-----------|-------------------|
+| A1 | Iconos sociales | aria-label descriptivo en cada SVG |
+| A2 | Botón copiar hash | aria-label "Copiar hash de verificación" |
+| A3 | Contraste | Texto principal sobre fondos claros con contraste suficiente (WCAG AA) |
+| A4 | Loader | role="status" y aria-label "Cargando" |
 
-### 3. Pruebas de Edge Cases
+## 7. Performance
 
-#### 3.1 Validación de Formularios
-- **Test:** Registro sin email
-  - Input: Formulario sin email
-  - Expected: Error de validación
-  - Status: Pendiente
+| ID | Escenario | Criterio de Éxito |
+|----|-----------|-------------------|
+| P1 | First Load JS de la home | Sin regresiones significativas (objetivo < 100 kB) |
+| P2 | Animaciones | fade-in/scale-in de entrada no bloquean interacción |
 
-- **Test:** Registro sin password
-  - Input: Formulario sin password
-  - Expected: Error de validación
-  - Status: Pendiente
+## Criterios de Aceptación Globales
 
-- **Test:** Login sin credenciales
-  - Input: Formulario vacío
-  - Expected: Error de validación
-  - Status: Pendiente
-
-#### 3.2 Manejo de Errores
-- **Test:** API retorna error 500
-  - Input: API falla
-  - Expected: Mensaje de error mostrado al usuario
-  - Status: Pendiente
-
-- **Test:** API retorna error 401
-  - Input: Token expirado
-  - Expected: Redirección a login
-  - Status: Pendiente
-
-#### 3.3 Estado de Carga
-- **Test:** Loading durante request
-  - Input: Request en progreso
-  - Expected: Indicador de loading visible
-  - Status: Pendiente
-
-### 4. Pruebas de SEO
-
-#### 4.1 Meta Tags
-- **Test:** Meta tags generados correctamente
-  - Input: Acceder a cualquier página
-  - Expected: Meta tags presentes en HTML
-  - Status: Pendiente
-
-- **Test:** Open Graph tags
-  - Input: Acceder a cualquier página
-  - Expected: OG tags presentes en HTML
-  - Status: Pendiente
-
-#### 4.2 Structured Data
-- **Test:** JSON-LD presente
-  - Input: Acceder a home
-  - Expected: JSON-LD script presente
-  - Status: Pendiente
-
-### 5. Pruebas de Responsive Design
-
-#### 5.1 Mobile
-- **Test:** Layout en móvil
-  - Input: Viewport móvil (375px)
-  - Expected: Layout responsive correcto
-  - Status: Pendiente
-
-#### 5.2 Tablet
-- **Test:** Layout en tablet
-  - Input: Viewport tablet (768px)
-  - Expected: Layout responsive correcto
-  - Status: Pendiente
-
-#### 5.3 Desktop
-- **Test:** Layout en desktop
-  - Input: Viewport desktop (1920px)
-  - Expected: Layout responsive correcto
-  - Status: Pendiente
-
-## Criterios de Éxito
-
-- Todas las pruebas unitarias pasan
-- Todas las pruebas de integración pasan
-- Todas las pruebas de edge cases pasan
-- Todas las pruebas de SEO pasan
-- Todas las pruebas de responsive design pasan
-- Sin errores de hidratación
-- Sin errores en consola
-- Frontend carga en menos de 2 segundos
-
-## Herramientas de Testing
-
-- **Unit Testing:** Jest + React Testing Library
-- **E2E Testing:** Playwright o Cypress
-- **SEO Testing:** Lighthouse, SEO tools
-- **Responsive Testing:** Chrome DevTools
-
-## Plan de Ejecución
-
-1. Configurar entorno de testing
-2. Ejecutar pruebas unitarias
-3. Ejecutar pruebas de integración
-4. Ejecutar pruebas de edge cases
-5. Ejecutar pruebas de SEO
-6. Ejecutar pruebas de responsive design
-7. Documentar resultados
-8. Corregir fallos encontrados
-9. Re-ejecutar pruebas fallidas
-10. Notificar al usuario cuando todas pasen
-
-## Estado General
-**Pruebas unitarias:** 0/8 completadas  
-**Pruebas de integración:** 0/3 completadas  
-**Pruebas de edge cases:** 0/6 completadas  
-**Pruebas de SEO:** 0/3 completadas  
-**Pruebas de responsive design:** 0/3 completadas  
-**Total:** 0/23 completadas
+- Funcionalidad de sorteos intacta (mismo contrato con backend)
+- Build sin errores
+- Sin errores de consola
+- Diseño visual mejorado y consistente

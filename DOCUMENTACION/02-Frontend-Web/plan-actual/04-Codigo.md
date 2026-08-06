@@ -2,6 +2,22 @@
 
 ## Archivos Principales
 
+### web/app/page.tsx
+**Descripción:** Página home (landing) con el flujo principal de sorteos
+**Funciones clave:**
+- Hero con título con gradiente y SocialIcons
+- Formulario de creación de sorteo (componente SorteoForm)
+- Visualización de resultados (componente ResultCard)
+- Tabla de precios (componente PriceDisplay)
+- Animaciones de entrada (fade-in, scale-in)
+
+**Archivos involucrados:**
+- `components/features/SorteoForm.tsx`
+- `components/features/ResultCard.tsx`
+- `components/features/PriceDisplay.tsx`
+- `components/features/SocialIcons.tsx`
+- `components/ui/Card.tsx`
+
 ### web/app/layout.tsx
 **Descripción:** Layout principal con SEO
 **Funciones clave:**
@@ -78,7 +94,49 @@
 **Archivos involucrados:**
 - Ninguno (dependencias externas)
 
+**Nota:** Se eliminó la propiedad `token` inválida de los objetos RequestInit en `crearSorteo()` y `listarSorteos()` (fetchAPI ya lee el token de localStorage).
+
 **Logs relacionados:** Logs de API, errores de red
+
+## Sistema de Diseño (Design System)
+
+### web/app/globals.css
+**Descripción:** Estilos globales con sistema de diseño completo
+**Contenido:**
+- Directivas Tailwind (`@tailwind base/components/utilities`)
+- Variables CSS (colores, tipografía, espaciado, bordes, sombras, transiciones)
+- Clases utilitarias (container, card, grid-responsive, fade-in)
+- Media queries responsive (móvil < 640px)
+
+### web/tailwind.config.js
+**Descripción:** Configuración de Tailwind CSS
+**Contenido:**
+- Content: `app/**` y `components/**`
+- Colores extendidos (primary, secondary, success, warning, error)
+- Animaciones custom: `fade-in`, `scale-in`
+- `duration-250` para transiciones
+
+### web/postcss.config.js
+**Descripción:** Configuración de PostCSS con Tailwind y Autoprefixer
+
+### web/components/ui/ (Componentes base)
+| Componente | Descripción |
+|------------|-------------|
+| `Button.tsx` | Botón con variantes (primary, secondary, outline, ghost), tamaños y loading state |
+| `Card.tsx` | Tarjeta con hover effects y padding configurable |
+| `Input.tsx` | Input con floating label, estados focus/error y icono |
+| `Loader.tsx` | Spinner animado con variantes de tamaño y color |
+| `Alert.tsx` | Alert con variantes (success, error, warning, info) e iconos |
+
+### web/components/features/ (Componentes del dominio)
+| Componente | Descripción |
+|------------|-------------|
+| `SocialIcons.tsx` | Iconos SVG de Instagram, TikTok y YouTube con hover effects y accesibilidad |
+| `SorteoForm.tsx` | Formulario con detección automática de red social, validación en tiempo real y POST a `/api/sorteos` |
+| `PriceDisplay.tsx` | Cards con gradientes por rango de precios y grid responsive |
+| `ResultCard.tsx` | Resultados: sorteo completado (ganador, hash, copiar) y requiere pago (precio) |
+
+**Nota:** Los componentes base UI y features usan clases Tailwind. Tailwind CSS v3 fue instalado y configurado el 2026-08-02 (antes los componentes base existían sin Tailwind configurado, por lo que no se renderizaban con estilos).
 
 ## Dependencias Principales
 
@@ -95,7 +153,10 @@
     "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.0.0",
+    "autoprefixer": "^10.0.0"
   }
 }
 ```
@@ -125,6 +186,19 @@ npm start  # next start
 ```
 
 ## Componentes React
+
+### HomePage
+**Estado:**
+- resultado: any (respuesta del servidor: sorteo completado o requiere pago)
+
+**Event Handlers:**
+- setResultado: callback recibido por SorteoForm vía onResultado
+
+**Componentes:**
+- Hero con título gradiente + SocialIcons
+- SorteoForm (POST a `/api/sorteos` con urlPublicacion, redSocial, cantidadGanadores, cantidadSuplentes)
+- ResultCard (cuando hay resultado, con onReiniciar)
+- PriceDisplay
 
 ### RegisterPage
 **Estado:**
@@ -243,3 +317,11 @@ npm start  # next start
 4. Verificar sorteo en lista
 5. Acceder a detalle de sorteo
 6. Verificar ganadores y hash
+
+### Flujo de Sorteo desde Home (MVP actual)
+1. Acceder a `/`
+2. Pegar URL de Instagram, TikTok o YouTube
+3. Verificar detección automática de red social (badge en el input)
+4. Click en "Crear Sorteo" (con loader animado)
+5. Si requiere pago: verificar ResultCard amarilla con precio
+6. Si es gratis: verificar ResultCard verde con ganador, hash y botón copiar

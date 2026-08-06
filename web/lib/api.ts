@@ -50,7 +50,6 @@ export async function crearSorteo(
 ) {
   return fetchAPI('/api/sorteos', {
     method: 'POST',
-    token,
     body: JSON.stringify({
       titulo,
       urlPublicacion,
@@ -62,7 +61,7 @@ export async function crearSorteo(
 }
 
 export async function listarSorteos(token: string) {
-  return fetchAPI('/api/sorteos', { token });
+  return fetchAPI('/api/sorteos');
 }
 
 export async function obtenerSorteo(id: string) {

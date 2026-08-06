@@ -2,19 +2,19 @@ import './globals.css'
 import { generateOpenGraph, generateTwitterCard } from '@shared/seo'
 
 export const metadata = {
-  title: 'Sorteos MVP Gratuito - Sistema de Sorteos Online',
-  description: 'Realiza sorteos gratuitos en Instagram, TikTok y YouTube. Sistema determinístico y verificable. Ideal para influencers y marcas en Latinoamérica.',
+  title: 'Sorteosypromos - Sistema de Sorteos y Promociones',
+  description: 'Realiza tu sorteo hasta 1000 comentarios gratis. Herramienta de sorteos y promociones para Instagram, TikTok y YouTube.',
   keywords: ['sorteos', 'instagram', 'tiktok', 'youtube', 'gratuito', 'latinoamerica', 'influencers', 'marcas'],
   openGraph: {
-    title: 'Sorteos MVP Gratuito - Sistema de Sorteos Online',
-    description: 'Realiza sorteos gratuitos en Instagram, TikTok y YouTube. Sistema determinístico y verificable. Ideal para influencers y marcas en Latinoamérica.',
+    title: 'Sorteosypromos - Sistema de Sorteos y Promociones',
+    description: 'Realiza tu sorteo hasta 1000 comentarios gratis. Herramienta de sorteos y promociones para Instagram, TikTok y YouTube.',
     type: 'website',
     locale: 'es_AR',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sorteos MVP Gratuito - Sistema de Sorteos Online',
-    description: 'Realiza sorteos gratuitos en Instagram, TikTok y YouTube. Sistema determinístico y verificable. Ideal para influencers y marcas en Latinoamérica.',
+    title: 'Sorteosypromos - Sistema de Sorteos y Promociones',
+    description: 'Realiza tu sorteo hasta 1000 comentarios gratis. Herramienta de sorteos y promociones para Instagram, TikTok y YouTube.',
   },
 }
 

@@ -1,115 +1,109 @@
 import { Router, Request, Response } from 'express';
 import prisma from '../lib/prisma';
-import { realizarSorteo } from '../lib/verificacion';
-import { recolectarComentarios } from '../collectors';
-import { AuthRequest } from '../lib/middleware';
-import { authMiddleware } from '../lib/middleware';
+import { ejecutarSorteoCompleto, respuestaCuotaAgotada, SorteoInput } from '../lib/sorteos-service';
+import { estadoCuota, PRECIO_PASE_COLA, CuotaAgotadaError } from '../lib/cuota';
+import { entrarEnCola, estadoCola } from '../lib/cola';
+import { PaseInvalidoError } from '../lib/pases';
 
 const router = Router();
 
-// Límite de 3 sorteos por mes para plan free
-const LIMITE_SORTEOS_MENSUAL = 3;
-
-router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
-    const { titulo, urlPublicacion, redSocial, cantidadGanadores, cantidadSuplentes } = req.body;
-    
-    if (!titulo || !urlPublicacion || !redSocial || !cantidadGanadores) {
+    const body = req.body as SorteoInput;
+
+    if (!body.cantidadGanadores) {
       res.status(400).json({ error: 'Datos incompletos' });
       return;
     }
-    
-    // Verificar límite mensual
-    const inicioMes = new Date();
-    inicioMes.setDate(1);
-    inicioMes.setHours(0, 0, 0, 0);
-    
-    const sorteosEsteMes = await prisma.sorteo.count({
-      where: {
-        usuarioId: req.userId!,
-        createdAt: { gte: inicioMes },
-      },
+
+    const resultado = await ejecutarSorteoCompleto({
+      urlPublicacion: body.urlPublicacion,
+      redSocial: body.redSocial,
+      cantidadGanadores: body.cantidadGanadores,
+      cantidadSuplentes: body.cantidadSuplentes,
+      participantesManuales: body.participantesManuales,
+      participantesPrecargados: body.participantesPrecargados,
+      cookies: body.cookies,
+      sessionId: body.sessionId,
+      eliminarDuplicados: body.eliminarDuplicados,
+      paseAprobado: body.paseAprobado,
+      paseId: body.paseId,
     });
-    
-    if (sorteosEsteMes >= LIMITE_SORTEOS_MENSUAL) {
-      res.status(400).json({ error: `Límite de ${LIMITE_SORTEOS_MENSUAL} sorteos por mes alcanzado` });
+
+    if (resultado.requierePago) {
+      res.json(resultado);
       return;
     }
-    
-    // Crear sorteo en estado pendiente
-    const sorteo = await prisma.sorteo.create({
-      data: {
-        titulo,
-        urlPublicacion,
-        redSocial,
-        cantidadGanadores,
-        cantidadSuplentes: cantidadSuplentes || 0,
-        usuarioId: req.userId!,
-        estado: 'pendiente',
-      },
-    });
-    
-    // Recolectar comentarios
-    const comentarios = await recolectarComentarios(urlPublicacion, redSocial);
-    
-    // Guardar participantes (SQLite no soporta skipDuplicates, usar try/catch)
-    for (const usuarioExterno of comentarios) {
-      try {
-        await prisma.participante.create({
-          data: {
-            usuarioExterno,
-            sorteoId: sorteo.id,
-          },
-        });
-      } catch (e) {
-        // Ignorar duplicados
-      }
-    }
-    
-    // Realizar sorteo
-    const resultado = realizarSorteo(comentarios, cantidadGanadores, cantidadSuplentes);
-    
-    // Actualizar sorteo con resultado
-    await prisma.sorteo.update({
-      where: { id: sorteo.id },
-      data: {
-        estado: 'completado',
-        hashVerificacion: resultado.hashVerificacion,
-        timestamp: resultado.timestamp,
-        participantesHash: resultado.participantesHash,
-      },
-    });
-    
-    // Crear certificado
-    await prisma.certificado.create({
-      data: {
-        sorteoId: sorteo.id,
-        ganadores: JSON.stringify(resultado.ganadores),
-        suplentes: JSON.stringify(resultado.suplentes),
-      },
-    });
-    
-    res.json({
-      sorteo: {
-        id: sorteo.id,
-        titulo: sorteo.titulo,
-        estado: sorteo.estado,
-        ganadores: resultado.ganadores,
-        suplentes: resultado.suplentes,
-        hashVerificacion: resultado.hashVerificacion,
-      },
-    });
+
+    res.json({ sorteo: resultado.sorteo, comentarios: resultado.comentarios });
   } catch (error: any) {
+    if (error instanceof CuotaAgotadaError) {
+      res.json(respuestaCuotaAgotada());
+      return;
+    }
+    if (error instanceof PaseInvalidoError) {
+      res.status(402).json({ requierePago: true, motivo: 'pase_invalido', precio: PRECIO_PASE_COLA, moneda: 'ARS', mensaje: error.message });
+      return;
+    }
     console.error('Error creando sorteo:', error);
     res.status(500).json({ error: error.message || 'Error interno del servidor' });
   }
 });
 
-router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
+// Estado de la cuota de sorteos gratis de la nube (para mostrar en la UI)
+router.get('/cuota', async (req: Request, res: Response) => {
   try {
+    const cuota = await estadoCuota();
+    res.json({ ...cuota, precioPase: PRECIO_PASE_COLA });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Error interno del servidor' });
+  }
+});
+
+// Entrar en la cola de espera cuando la cuota del día está agotada
+router.post('/cola', async (req: Request, res: Response) => {
+  try {
+    const { urlPublicacion, redSocial, cantidadGanadores, cantidadSuplentes, eliminarDuplicados } = req.body;
+    if (!urlPublicacion || !redSocial || !cantidadGanadores) {
+      res.status(400).json({ error: 'Datos incompletos' });
+      return;
+    }
+    const solicitud = await entrarEnCola({
+      urlPublicacion,
+      redSocial,
+      cantidadGanadores,
+      cantidadSuplentes,
+      eliminarDuplicados,
+    });
+    const estado = await estadoCola(solicitud.id);
+    res.json(estado);
+  } catch (error: any) {
+    console.error('Error entrando en cola:', error);
+    res.status(500).json({ error: error.message || 'Error interno del servidor' });
+  }
+});
+
+// Estado de una solicitud en cola (polling del frontend)
+router.get('/cola/:id', async (req: Request, res: Response) => {
+  try {
+    const estado = await estadoCola(req.params.id);
+    if (!estado) {
+      res.status(404).json({ error: 'Solicitud no encontrada' });
+      return;
+    }
+    res.json(estado);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Error interno del servidor' });
+  }
+});
+
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    // MVP sin auth: listar todos los sorteos recientes (últimos 50)
     const sorteos = await prisma.sorteo.findMany({
-      where: { usuarioId: req.userId! },
+      where: { usuarioId: 'anonimo' },
       orderBy: { createdAt: 'desc' },
+      take: 50,
       include: {
         certificados: true,
       },

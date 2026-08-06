@@ -1,22 +1,22 @@
-# Documento de Especificaciones - MVP Sorteos Gratuitos
+# Documento de Especificaciones - Sorteosypromos
 
 ## 1. Descripción General
 
-**Nombre del Proyecto:** MVP Sorteos Gratuitos  
+**Nombre del Proyecto:** Sorteosypromos  
 **Versión:** 1.0.0  
 **Fecha de Creación:** 01/08/2026  
 **Estado:** Desarrollo Activo
 
-Sistema de sorteos gratuito paralelo a la versión completa, enfocado en Latinoamérica, utilizando scraping para recolectar comentarios de redes sociales (Instagram, TikTok, YouTube) y pagos por uso con Mercado Pago.
+Realiza tu sorteo hasta 1000 comentarios gratis. Herramienta de sorteos y promociones para Instagram, TikTok y YouTube, enfocada en Latinoamérica, utilizando scraping para recolectar comentarios de redes sociales. **Actualización (01/08/2026):** Modelo simplificado sin autenticación obligatoria, con precios por cantidad de comentarios para incentivar el uso gratuito.
 
 ## 2. Objetivos del Proyecto
 
 ### 2.1 Objetivos Principales
-- Crear una versión simplificada y gratuita del sistema de sorteos
+- Crear Sorteosypromos: herramienta de sorteos y promociones para redes sociales
 - Implementar scraping de comentarios sin usar APIs de pago
-- Integrar pagos por uso simples con Mercado Pago
+- Ofrecer hasta 1000 comentarios gratis por sorteo
 - Implementar SEO técnico optimizado para Latinoamérica
-- Crear módulos reutilizables para migrar a la versión completa
+- Crear módulos reutilizables para migrar a funcionalidades avanzadas
 
 ### 2.2 Objetivos Secundarios
 - Validar la arquitectura de módulos reutilizables
@@ -28,19 +28,23 @@ Sistema de sorteos gratuito paralelo a la versión completa, enfocado en Latinoa
 
 ### 3.1 Funcionalidades Incluidas
 - **Backend API:**
-  - Autenticación JWT (registro, login, /me)
-  - Creación de sorteos con scraping
-  - Límite de 3 sorteos/mes por usuario (plan free)
+  - Autenticación JWT (registro, login, /me) - **IMPLEMENTACIÓN FUTURA**
+  - Creación de sorteos con scraping (sin autenticación obligatoria)
+  - Modelo de precios por cantidad de comentarios
   - Motor de sorteos determinístico
   - Sistema de verificación con hash
-  - Integración de pagos Mercado Pago
-  - Webhooks de Mercado Pago
+  - Cuota mensual de sorteos gratis en la nube (Apify) + cola de espera FIFO
+  - Pase Rápido con pago real de MercadoPago (preferencia, verificación, webhook, consumo 1:1)
+  - Webhooks de Mercado Pago (Pase Rápido)
 
 - **Frontend Web:**
-  - Página de registro
-  - Página de login
-  - Dashboard de usuario
-  - Página de detalle de sorteo
+  - Página home simplificada (solo pegar URL)
+  - Detección automática de red social
+  - Visualización de precios
+  - Página de registro - **IMPLEMENTACIÓN FUTURA**
+  - Página de login - **IMPLEMENTACIÓN FUTURA**
+  - Dashboard de usuario - **IMPLEMENTACIÓN FUTURA**
+  - Página de detalle de sorteo - **IMPLEMENTACIÓN FUTURA**
   - Integración de SEO técnico
 
 - **Módulos Reutilizables:**
@@ -77,7 +81,7 @@ Sistema de sorteos gratuito paralelo a la versión completa, enfocado en Latinoa
 
 ## 5. Requisitos Funcionales
 
-### 5.1 Autenticación
+### 5.1 Autenticación (IMPLEMENTACIÓN FUTURA)
 - RF-01: Usuario debe poder registrarse con email, contraseña y nombre
 - RF-02: Usuario debe poder iniciar sesión con email y contraseña
 - RF-03: Sistema debe generar token JWT válido
@@ -85,25 +89,32 @@ Sistema de sorteos gratuito paralelo a la versión completa, enfocado en Latinoa
 - RF-05: Contraseñas deben ser hasheadas con bcrypt
 
 ### 5.2 Sorteos
-- RF-06: Usuario debe poder crear sorteos con título, URL de publicación y red social
-- RF-07: Sistema debe recolectar comentarios de Instagram/TikTok/YouTube
-- RF-08: Sistema debe seleccionar ganadores de forma determinística
-- RF-09: Sistema debe generar hash de verificación
-- RF-10: Usuario debe poder ver sus sorteos en dashboard
-- RF-11: Usuario debe poder ver detalle de un sorteo específico
-- RF-12: Sistema debe limitar a 3 sorteos por mes por usuario (plan free)
+- RF-06: Usuario debe poder crear sorteos solo pegando URL de publicación (sin autenticación)
+- RF-07: Sistema debe detectar automáticamente la red social (Instagram/TikTok/YouTube)
+- RF-08: Sistema debe recolectar comentarios de Instagram/TikTok/YouTube
+- RF-09: Sistema debe seleccionar ganadores de forma determinística
+- RF-10: Sistema debe generar hash de verificación
+- RF-11: Sistema debe calcular precio según cantidad de comentarios
+- RF-12: Sistema debe crear sorteo gratuito si tiene ≤1000 comentarios
+- RF-13: Sistema debe requerir pago si tiene >1000 comentarios
 
-### 5.3 Pagos
-- RF-13: Usuario debe poder pagar por sorteo individual
-- RF-14: Sistema debe crear preferencia de pago en Mercado Pago
-- RF-15: Sistema debe recibir webhooks de Mercado Pago
-- RF-16: Sistema debe verificar firma de webhooks
-- RF-17: Precio por sorteo: 100 ARS (configurable)
+### 5.3 Modelo de Precios
+- RF-14: 0-1000 comentarios: Gratis ($0 ARS)
+- RF-15: 1001-2000 comentarios: $5,000 ARS
+- RF-16: 2001-3000 comentarios: $6,000 ARS
+- RF-17: 3001-10000 comentarios: $10,000 ARS
+- RF-18: +10000 comentarios: $10,000 + $1,000 por cada 1000 comentarios adicionales
 
-### 5.4 SEO
-- RF-18: Sistema debe generar meta tags optimizados
-- RF-19: Sistema debe soportar múltiples locales de Latinoamérica
-- RF-20: Sistema debe generar structured data para Schema.org
+### 5.4 Pagos (IMPLEMENTACIÓN FUTURA)
+- RF-19: Usuario debe poder pagar por sorteo individual
+- RF-20: Sistema debe crear preferencia de pago en Mercado Pago
+- RF-21: Sistema debe recibir webhooks de Mercado Pago
+- RF-22: Sistema debe verificar firma de webhooks
+
+### 5.5 SEO
+- RF-23: Sistema debe generar meta tags optimizados
+- RF-24: Sistema debe soportar múltiples locales de Latinoamérica
+- RF-25: Sistema debe generar structured data para Schema.org
 
 ## 6. Requisitos No Funcionales
 

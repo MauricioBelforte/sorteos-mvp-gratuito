@@ -1,6 +1,6 @@
-# Sorteos MVP Gratuito
+# Sorteosypromos
 
-Versión simplificada y gratuita del sistema de sorteos para MVP inicial.
+Realiza tu sorteo hasta 1000 comentarios gratis. Herramienta de sorteos y promociones para Instagram, TikTok y YouTube.
 
 ## Características
 

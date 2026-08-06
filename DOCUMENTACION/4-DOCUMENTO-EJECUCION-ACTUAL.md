@@ -1,4 +1,4 @@
-# Documento de Ejecución - MVP Sorteos Gratuitos
+# Documento de Ejecución - Sorteosypromos
 
 ## 1. Instrucciones de Ejecución
 
@@ -43,10 +43,15 @@ npm run build
 #### Backend (.env)
 ```env
 DATABASE_URL=file:./dev.db
-JWT_SECRET=tu-secret-jwt-aqui
+JWT_SECRET=tu-secret-jwt-aqui  # Para implementación futura de auth
 APP_BASE_URL=http://localhost:3000
-MERCADO_PAGO_ACCESS_TOKEN=TEST-xxx-o-PROD-xxx
-MERCADO_PAGO_WEBHOOK_SECRET=tu-secret-webhook
+MERCADO_PAGO_ACCESS_TOKEN=TEST-xxx-o-PROD-xxx  # Token real desde developers.mercadopago.com (placeholder devuelve 401/403)
+MERCADO_PAGO_WEBHOOK_SECRET=tu-secret-webhook  # Para implementación futura de pagos
+WEB_APP_URL=http://localhost:3000              # Usada en los back_urls del checkout del Pase Rápido
+APIFY_CUOTA_MENSUAL=45                          # Límite mensual de sorteos gratis en la nube (0 = sin límite local)
+PRECIO_PASE_COLA=2500                           # Precio del Pase Rápido (ARS)
+APIFY_TOKEN=                                    # Token del actor Apify (estrategia D, opcional)
+SCRAPFLY_TOKEN=                                 # Token de ScrapFly (estrategia F, opcional)
 ```
 
 #### Frontend (.env.local)
@@ -72,7 +77,7 @@ npm start        # Ejecutar producción
 
 ## 2. Endpoints API
 
-### 2.1 Autenticación
+### 2.1 Autenticación (IMPLEMENTACIÓN FUTURA)
 - `POST /api/auth/register` - Registro de usuario
   - Body: `{ email, password, nombre }`
   - Response: `{ token, usuario }`
@@ -86,27 +91,34 @@ npm start        # Ejecutar producción
   - Response: `{ id, email, nombre, rol, bloqueado }`
 
 ### 2.2 Sorteos
-- `POST /api/sorteos` - Crear sorteo
-  - Headers: `Authorization: Bearer <token>`
-  - Body: `{ titulo, urlPublicacion, redSocial, cantidadGanadores, cantidadSuplentes }`
-  - Response: `{ sorteo: { id, titulo, estado, ganadores, suplentes, hashVerificacion } }`
+- `POST /api/sorteos` - Crear sorteo (SIN AUTENTICACIÓN)
+  - Body: `{ urlPublicacion, redSocial, cantidadGanadores, cantidadSuplentes }`
+  - Response (gratis): `{ sorteo: { id, titulo, estado, ganadores, suplentes, hashVerificacion } }`
+  - Response (con costo): `{ requierePago: true, cantidadComentarios, precio, moneda, mensaje }`
 
-- `GET /api/sorteos` - Listar sorteos del usuario
-  - Headers: `Authorization: Bearer <token>`
+- `GET /api/sorteos` - Listar sorteos recientes (últimos 50, SIN AUTENTICACIÓN)
   - Response: `[{ id, titulo, estado, createdAt, certificados }]`
 
-- `GET /api/sorteos/:id` - Obtener sorteo por ID
+- `GET /api/sorteos/:id` - Obtener sorteo por ID (SIN AUTENTICACIÓN)
   - Response: `{ id, titulo, estado, hashVerificacion, certificados }`
 
-### 2.3 Pagos
-- `POST /api/pagos/checkout` - Crear pago por sorteo
-  - Headers: `Authorization: Bearer <token>`
-  - Body: `{ sorteoId }`
-  - Response: `{ checkoutUrl, sandboxCheckoutUrl, preferenceId }`
+### 2.3 Pagos (Pase Rápido — MercadoPago)
+- `POST /api/pagos/pase` - Crea la preferencia de pago del Pase Rápido (SIN AUTENTICACIÓN)
+  - Body: `{}`
+  - Response: `{ paseId, monto, moneda: 'ARS', initPoint, sandboxInitPoint }`
+  - Los `back_urls` apuntan a `${WEB_APP_URL}/pago?estado=<success|failure|pending>&paseId=<id>`
 
-- `POST /api/pagos/webhook` - Webhook de Mercado Pago
+- `GET /api/pagos/pase/:id` - Estado del Pase Rápido
+  - Response: `{ paseId, estado: 'pendiente'|'aprobado'|'rechazado', monto, moneda, usadoEnSorteoId, pagadoAt }`
+
+- `POST /api/pagos/webhook` - Webhook de Mercado Pago (disparador; la fuente de verdad es la API de MP por payment_id)
   - Body: Notificación de Mercado Pago
   - Response: `{ received: true }`
+
+- `POST /api/pagos/verificar` - Verificación manual usada en el retorno del checkout
+  - Body: `{ paseId, paymentId }`
+  - Consulta MP por payment_id; si está `approved` y `external_reference === paseId`, aprueba el pase
+  - Response: `{ paseId, estado, monto, pagoMpStatus }`
 
 ## 3. Archivos Principales
 
@@ -131,9 +143,11 @@ Rutas de sorteos.
 - `GET /:id` - Obtener sorteo por ID
 
 #### api/src/routes/pagos.ts
-Rutas de pagos.
-- `POST /checkout` - Crear preferencia Mercado Pago
-- `POST /webhook` - Recibir notificaciones Mercado Pago
+Rutas de pagos del Pase Rápido.
+- `POST /pase` - Crear preferencia Mercado Pago (`createPayment` de `@shared/mercadopago`)
+- `GET /pase/:id` - Estado del Pase
+- `POST /webhook` - Recibir notificaciones Mercado Pago y consultar el payment
+- `POST /verificar` - Verificar pago en el retorno del checkout
 
 #### api/src/lib/verificacion.ts
 Motor de sorteos determinístico.

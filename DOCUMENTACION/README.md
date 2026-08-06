@@ -1,6 +1,6 @@
-# Sistema de Documentación - MVP Sorteos Gratuitos
+# Sorteosypromos
 
-Este sistema organiza toda la documentación del proyecto siguiendo una metodología estructurada y escalable.
+Realiza tu sorteo hasta 1000 comentarios gratis. Herramienta de sorteos y promociones para Instagram, TikTok y YouTube.
 
 ## Estructura Principal
 
@@ -40,9 +40,21 @@ DOCUMENTACION/
 ├── 03-Modulo-SEO/
 │   ├── plan-inicial/
 │   └── plan-actual/
-└── 04-Modulo-MercadoPago/
-    ├── plan-inicial/
-    └── plan-actual/
+├── 04-Modulo-MercadoPago/
+│   ├── plan-inicial/
+│   └── plan-actual/
+├── 05-Mejoras-UI/
+│   ├── plan-inicial/
+│   └── plan-actual/
+├── 06-Mejoras-Backend-Produccion/
+│   ├── plan-inicial/
+│   └── plan-actual/
+├── 07-Plan-de-Testings-Completo/
+│   ├── plan-inicial/
+│   └── plan-actual/
+├── 08-Testing-Seguridad/
+│   ├── plan-inicial/
+│   └── plan-actual/
 ```
 
 ## Archivos Obligatorios por Componente
@@ -72,7 +84,7 @@ Cada carpeta (`plan-inicial/` y `plan-actual/`) contiene estos archivos:
 
 ## Próximo Número de Componente
 
-El próximo componente a crear debe usar el número: **05**
+El próximo componente a crear debe usar el número: **09**
 
 ## Logs
 

@@ -224,19 +224,19 @@ Actualiza lista de sorteos
 ### Meta Tags
 ```typescript
 export const metadata = {
-  title: 'Sorteos MVP Gratuito - Sistema de Sorteos Online',
-  description: 'Realiza sorteos gratuitos en Instagram, TikTok y YouTube...',
+  title: 'Sorteosypromos - Sistema de Sorteos y Promociones',
+  description: 'Realiza tu sorteo hasta 1000 comentarios gratis. Herramienta de sorteos y promociones para Instagram, TikTok y YouTube...',
   keywords: ['sorteos', 'instagram', 'tiktok', 'youtube', 'gratuito'],
   openGraph: {
-    title: 'Sorteos MVP Gratuito',
-    description: '...',
+    title: 'Sorteosypromos',
+    description: 'Realiza tu sorteo hasta 1000 comentarios gratis. Herramienta de sorteos y promociones para Instagram, TikTok y YouTube.',
     type: 'website',
     locale: 'es_AR',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sorteos MVP Gratuito',
-    description: '...',
+    title: 'Sorteosypromos',
+    description: 'Realiza tu sorteo hasta 1000 comentarios gratis. Herramienta de sorteos y promociones para Instagram, TikTok y YouTube.',
   },
 }
 ```

@@ -1,4 +1,4 @@
-# Documento de Diseño - MVP Sorteos Gratuitos
+# Documento de Diseño - Sorteosypromos
 
 ## 1. Arquitectura General
 
@@ -8,7 +8,8 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                        Frontend (Next.js)                    │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │ Registro │  │  Login   │  │Dashboard │  │  Sorteo  │   │
+│  │   Home   │  │ Registro │  │  Login   │  │Dashboard │   │
+│  │ (Simplif)│  │ (Futuro) │  │ (Futuro) │  │ (Futuro) │   │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -18,6 +19,7 @@
 │                    Backend API (Express)                     │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
 │  │   Auth   │  │ Sorteos  │  │  Pagos   │  │ Webhooks │   │
+│  │ (Futuro) │  │ (Sin Auth)│  │ (Futuro) │  │ (Futuro) │   │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -83,8 +85,10 @@ api/
 - `POST /api/sorteos` - Crear sorteo (requiere auth)
 - `GET /api/sorteos` - Listar sorteos del usuario (requiere auth)
 - `GET /api/sorteos/:id` - Obtener sorteo por ID
-- `POST /api/pagos/checkout` - Crear pago por sorteo (requiere auth)
+- `POST /api/pagos/pase` - Crear preferencia de pago del Pase Rápido
+- `GET /api/pagos/pase/:id` - Estado del Pase Rápido
 - `POST /api/pagos/webhook` - Webhook de Mercado Pago
+- `POST /api/pagos/verificar` - Verificar pago en el retorno del checkout
 
 ### 2.2 Frontend Web
 
@@ -192,16 +196,16 @@ model Certificado {
 11. Backend crea certificado con ganadores
 12. Frontend muestra resultado
 
-### 3.3 Flujo de Pago por Sorteo
-1. Usuario crea sorteo (o selecciona existente)
-2. Frontend envía POST a `/api/pagos/checkout`
-3. Backend crea preferencia en Mercado Pago
-4. Backend retorna URL de checkout
-5. Frontend redirige a Mercado Pago
-6. Usuario completa pago
-7. Mercado Pago envía webhook a `/api/pagos/webhook`
-8. Backend verifica firma del webhook
-9. Backend actualiza estado del sorteo (si aplica)
+### 3.3 Flujo de Pago del Pase Rápido (MercadoPago)
+1. Se agota la cuota gratuita de la nube → `POST /api/sorteos` responde 402 `{ requierePago: true, motivo: 'cuota', precio, mensaje }`
+2. El wizard ofrece Pase Rápido ($2500 ARS) o entrar en la cola de espera gratuita
+3. Frontend envía POST a `/api/pagos/pase` → backend crea un `PagoPase` (estado `pendiente`) y una preferencia en Mercado Pago
+4. Backend retorna `initPoint` → el frontend guarda el contexto del sorteo en localStorage y redirige al checkout de MP
+5. Usuario completa el pago → MP redirige a `WEB_APP_URL/pago?estado=...&paseId=...`
+6. La página `/pago` llama `POST /api/pagos/verificar` (consulta el payment por id en MP; fuente de verdad) o el webhook `POST /api/pagos/webhook` aprueba el pase en paralelo
+7. Pase `aprobado` → `/pago` guarda el paseId en localStorage y vuelve a la home
+8. El wizard restaura el contexto, re-analiza con `paseId + paseAprobado: true` (sin gastar cuota) y el sorteo al crearse **consume** el pase (`usadoEnSorteoId`)
+9. Reutilizar un pase consumido → 402 `{ requierePago: true, motivo: 'pase_invalido', mensaje }`
 
 ## 4. Diseño de Seguridad
 
