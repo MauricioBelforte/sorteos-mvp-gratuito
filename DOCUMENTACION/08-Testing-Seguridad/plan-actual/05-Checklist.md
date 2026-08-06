@@ -1,8 +1,8 @@
 # Checklist — Módulo 08: Testing de Seguridad
 
 **Componente:** 08-Testing-Seguridad  
-**Fecha:** 2026-08-05  
-**Responsable:** stepfun/step 3.7 (Cline)
+**Fecha:** 2026-08-05 (remediación: 2026-08-06)  
+**Responsable:** stepfun/step 3.7 (Cline) → continuado por DeepSeek (opencode)
 
 ---
 
@@ -33,20 +33,27 @@
 - [x] Generar log de resultados (Logs/32)
 
 ### Resultados
-- [x] Tests API: 2 pasaron, 4 fallaron
-- [x] Tests Web: 1 pasó, 2 fallaron
+- [x] Tests API: 2 pasaron, 4 fallaron (pre-remediación)
+- [x] Tests Web: 1 pasó, 2 fallaron (pre-remediación)
 - [x] Bugs confirmados: B-01, B-03, B-06, B-07, B-08
 - [x] Bugs descartados: B-05, XSS reflejado
 - [x] Actualizar ESTADO-PARALELO.md
 
-### Pendiente
-- [ ] Corregir B-01: restringir CORS
-- [ ] Corregir B-03: agregar rate limiting
-- [ ] Corregir B-06: sanitizar errores
-- [ ] Corregir B-07: agregar security headers
-- [ ] Corregir B-08: agregar metadataBase
-- [ ] Re-ejecutar tests para validar remediaciones
-- [ ] Actualizar documentación post-remediación
+### Remediación (2026-08-06)
+- [x] Corregir B-01: CORS restringido a WEB_APP_URL + localhost (403 en origen malicioso)
+- [x] Corregir B-03: rate limiting 100 req/15min configurable (RATE_LIMIT)
+- [x] Corregir B-06: error handler sanitizado + X-Powered-By removido
+- [x] Corregir B-07: helmet en API + poweredByHeader:false en web
+- [x] Corregir B-08: metadataBase en web/app/layout.tsx
+- [x] Corregir B-04: manejo de null en web/app/pago/page.tsx
+- [x] Validación de URLs en /api/sorteos/analizar (400 en vez de 500)
+- [x] Test de rate limiting aislado por IP ficticia (X-Forwarded-For) + trust proxy
+- [x] Bug funcional en seleccionarSinRepeticion (verificacion.ts): N ganadores devolvía N-1 → corregido y validado 50/50
+- [x] Re-ejecutar tests: seguridad 17/17, backend completo 59/59
+- [x] Actualizar 07-Resultados-Testings.md post-remediación
+- [ ] B-02: analizar race condition de la cola (pendiente, fuera de alcance)
+- [ ] Generar log (Logs/39)
+- [ ] Commit y push de los fixes
 
 ---
 

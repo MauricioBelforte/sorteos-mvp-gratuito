@@ -64,6 +64,32 @@ router.post('/analizar', async (req: Request, res: Response) => {
       return;
     }
 
+    // Validar formato de URL con http(s) y host relacionado a la red social (B-04)
+    // Evita 500 por collectors que reciben URLs malformadas o inyecciones.
+    if (!hayManuales && urlPublicacion) {
+      try {
+        const parsed = new URL(urlPublicacion);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          res.status(400).json({ error: 'Protocolo de URL no soportado' });
+          return;
+        }
+        const hostsPermitidos: Record<string, string[]> = {
+          instagram: ['instagram.com', 'www.instagram.com'],
+          tiktok: ['tiktok.com', 'www.tiktok.com', 'vm.tiktok.com'],
+          youtube: ['youtube.com', 'www.youtube.com', 'youtu.be', 'm.youtube.com'],
+        };
+        const hosts = hostsPermitidos[redSocialUsada] || [];
+        const hostOk = hosts.some(h => parsed.hostname === h || parsed.hostname.endsWith('.' + h));
+        if (!hostOk) {
+          res.status(400).json({ error: `La URL no pertenece a ${redSocialUsada}` });
+          return;
+        }
+      } catch {
+        res.status(400).json({ error: 'URL inválida' });
+        return;
+      }
+    }
+
     // Si vienen participantes manuales, no hacer scraping
     let participantes: Participante[];
     if (hayManuales) {

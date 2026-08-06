@@ -217,10 +217,10 @@
 - [x] Definir arquitectura objetivo (Web Vercel + API Render/Railway + Postgres Supabase/Neon)
 - [x] Crear base de datos PostgreSQL gratuita (Supabase/Neon)
 - [x] Migrar Prisma de SQLite a PostgreSQL (provider + migración inicial)
-- [ ] Subir repo a GitHub incluyendo shared-modules
+- [x] Subir repo a GitHub incluyendo shared-modules
 - [ ] Deploy de la API (Render/Railway) con Playwright instalado
 - [ ] Deploy de la web (Vercel) con NEXT_PUBLIC_API_URL pública
-- [ ] Ajustar CORS y rate limiting en la API
+- [x] Ajustar CORS y rate limiting en la API (Log 39: CORS restringido + 403, rate limit 100/15min configurable, helmet, error handler, trust proxy, test aislado por IP ficticia)
 - [ ] Verificar sorteo end-to-end en producción (cualquier persona sin registrarse)
 - [ ] Ejecutar plan de testings (módulo 06) y documentar resultados
 

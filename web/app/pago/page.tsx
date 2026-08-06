@@ -36,6 +36,11 @@ export default function PagoPage() {
       const data = paymentId
         ? await verificarPago(paseId, paymentId)
         : await estadoPase(paseId);
+      if (!data) {
+        setVista('error');
+        setMensaje('No se pudo verificar el pago. Intentalo de nuevo.');
+        return;
+      }
       if (data.estado === 'aprobado') {
         window.localStorage.setItem('sorteos_pase_id', paseId);
         window.location.href = '/';

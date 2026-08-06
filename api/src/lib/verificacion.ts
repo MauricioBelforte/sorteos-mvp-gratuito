@@ -46,7 +46,10 @@ function seleccionarSinRepeticion<T>(arr: T[], cantidad: number, prng: { next():
   const disponibles = [...arr];
   const seleccionados: T[] = [];
 
-  for (let i = 0; i < Math.min(cantidad, disponibles.length); i++) {
+  // El límite se calcula UNA vez: usar disponibles.length en la condición haría
+  // que cada splice encogiera el límite y devolviera menos ganadores de los pedidos.
+  const total = Math.min(cantidad, disponibles.length);
+  for (let i = 0; i < total; i++) {
     const idx = Math.floor(prng.next() * disponibles.length);
     seleccionados.push(disponibles[idx]);
     disponibles.splice(idx, 1);

@@ -1,4 +1,6 @@
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 
 const WEB_URL = process.env.WEB_URL || 'http://localhost:3000';
 
@@ -24,16 +26,13 @@ describe('Web Security Testing', () => {
   });
 
   describe('MetadataBase (B-08)', () => {
-    it('should have metadataBase configured in layout', async () => {
-      const response = await axios.get(WEB_URL, { validateStatus: () => true });
-      const html = response.data as string;
+    it('should have metadataBase configured in layout.tsx', () => {
+      // Leer el archivo fuente directamente (metadataBase es config de Next.js
+      // que no aparece en el HTML renderizado del cliente)
+      const layoutPath = path.resolve(__dirname, '../../../../web/app/layout.tsx');
+      const layoutSource = fs.readFileSync(layoutPath, 'utf8');
 
-      const hasMetadataBase = html.includes('metadataBase') ||
-                              html.includes('metadata base') ||
-                              html.includes('verification') ||
-                              html.includes('site verification');
-
-      // Next.js 14+ requiere metadataBase para verificación de dominio y SEO
+      const hasMetadataBase = layoutSource.includes('metadataBase');
       if (!hasMetadataBase) {
         console.warn('METADATABASE BUG: metadataBase not found in layout.tsx');
       }

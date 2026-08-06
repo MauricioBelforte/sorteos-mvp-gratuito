@@ -10,8 +10,8 @@ describe('API Security Testing', () => {
     'null',
   ];
 
-  describe('CORS Security', () => {
-    it('should NOT allow arbitrary origins (B-01)', async () => {
+  describe('CORS Security (B-01)', () => {
+    it('should NOT allow arbitrary origins', async () => {
       for (const origin of maliciousOrigins) {
         const response = await axios.get(`${API_URL}/api/sorteos/cuota`, {
           headers: { Origin: origin },
@@ -30,40 +30,20 @@ describe('API Security Testing', () => {
       }
     });
 
-    it('should have CORS configured (not wildcard)', async () => {
+    it('should allow only configured origins', async () => {
       const response = await axios.get(`${API_URL}/api/sorteos/cuota`, {
         headers: { Origin: 'http://localhost:3000' },
         validateStatus: () => true,
       });
 
       const acao = response.headers['access-control-allow-origin'];
-      // Si CORS está desconfigurado, no debería haber ACAO header
-      // Si está configurado correctamente, debería ser el origen permitido
-      console.log(`CORS ACAO for localhost:3000: ${acao}`);
+      // Debe permitir el origen configurado
+      expect(acao).toBe('http://localhost:3000');
     });
   });
 
-  describe('Rate Limiting', () => {
-    it('should have rate limiting active (B-03)', async () => {
-      const requests = [];
-      for (let i = 0; i < 50; i++) {
-        requests.push(
-          axios.get(`${API_URL}/api/sorteos/cuota`, { validateStatus: () => true })
-        );
-      }
-
-      const responses = await Promise.all(requests);
-      const rateLimited = responses.some(r => r.status === 429);
-
-      if (!rateLimited) {
-        console.warn('RATE LIMITING BUG: No 429 responses after 50 rapid requests');
-      }
-      expect(rateLimited).toBe(true);
-    });
-  });
-
-  describe('Body Size Limit', () => {
-    it('should reject oversized bodies (B-05)', async () => {
+  describe('Body Size Limit (B-05)', () => {
+    it('should reject oversized bodies', async () => {
       const largeBody = { data: 'x'.repeat(10 * 1024 * 1024) }; // 10MB
 
       try {
@@ -92,8 +72,8 @@ describe('API Security Testing', () => {
     });
   });
 
-  describe('Error Handling', () => {
-    it('should not expose stack traces (B-06)', async () => {
+  describe('Error Handling (B-06)', () => {
+    it('should not expose stack traces', async () => {
       const response = await axios.get(`${API_URL}/api/sorteos/preview`, {
         validateStatus: () => true,
       });
@@ -109,10 +89,25 @@ describe('API Security Testing', () => {
       }
       expect(hasStackTrace).toBe(false);
     });
+
+    it('should return generic error for internal errors', async () => {
+      // Forzar un error interno (endpoint inexistente con error)
+      const response = await axios.get(`${API_URL}/api/sorteos/error-test`, {
+        validateStatus: () => true,
+      });
+
+      const body = response.data;
+      const bodyStr = JSON.stringify(body).toLowerCase();
+      const hasInternalDetails = bodyStr.includes('at ') ||
+                                bodyStr.includes('node_modules') ||
+                                bodyStr.includes('stack');
+
+      expect(hasInternalDetails).toBe(false);
+    });
   });
 
-  describe('Security Headers', () => {
-    it('should have security headers configured (B-07)', async () => {
+  describe('Security Headers (B-07)', () => {
+    it('should have security headers configured', async () => {
       const response = await axios.get(`${API_URL}/health`, { validateStatus: () => true });
 
       const headers = response.headers;
@@ -127,6 +122,124 @@ describe('API Security Testing', () => {
         console.warn(`SECURITY HEADERS BUG: Missing headers: ${missingHeaders.join(', ')}`);
       }
       expect(missingHeaders.length).toBe(0);
+    });
+  });
+
+  describe('Input Validation', () => {
+    it('should reject invalid URLs', async () => {
+      const response = await axios.post(`${API_URL}/api/sorteos/analizar`, {
+        urlPublicacion: 'https://google.com',
+        redSocial: 'instagram',
+      }, { validateStatus: () => true });
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should reject empty URL', async () => {
+      const response = await axios.post(`${API_URL}/api/sorteos/analizar`, {
+        urlPublicacion: '',
+        redSocial: 'instagram',
+      }, { validateStatus: () => true });
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should reject SQL injection in URL', async () => {
+      const response = await axios.post(`${API_URL}/api/sorteos/analizar`, {
+        urlPublicacion: "'; DROP TABLE sorteos; --",
+        redSocial: 'instagram',
+      }, { validateStatus: () => true });
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should reject XSS in participants', async () => {
+      const response = await axios.post(`${API_URL}/api/sorteos`, {
+        urlPublicacion: 'https://instagram.com/p/test',
+        redSocial: 'instagram',
+        cantidadGanadores: 1,
+        cantidadSuplentes: 0,
+        participantesManuales: ['@user <script>alert(1)</script>'],
+      }, { validateStatus: () => true });
+
+      // No debe ejecutar el script; debe rechazar o sanitizar
+      expect(response.status).not.toBe(500);
+    });
+  });
+
+  describe('Webhook MercadoPago', () => {
+    it('should reject webhook without signature', async () => {
+      const response = await axios.post(`${API_URL}/api/pagos/webhook`, {
+        data: { id: '12345' },
+        type: 'payment',
+      }, { validateStatus: () => true });
+
+      // Sin firma debe rechazar (400 o 401)
+      expect([400, 401]).toContain(response.status);
+    });
+
+    it('should reject webhook with invalid signature', async () => {
+      const response = await axios.post(`${API_URL}/api/pagos/webhook`, {
+        data: { id: '12345' },
+        type: 'payment',
+      }, {
+        headers: {
+          'x-signature': 'invalid-signature',
+          'x-request-id': 'test-request-id',
+        },
+        validateStatus: () => true,
+      });
+
+      // Firma inválida debe rechazar (400 o 401)
+      expect([400, 401]).toContain(response.status);
+    });
+  });
+
+  describe('Pase Rápido', () => {
+    it('should reject invalid pase ID', async () => {
+      const response = await axios.get(`${API_URL}/api/pagos/pase/invalid-id`, {
+        validateStatus: () => true,
+      });
+
+      expect(response.status).toBe(404);
+    });
+  });
+
+  // Se corre AL FINAL a propósito: dispara más requests que el límite configurado
+  // y deja a la IP local dentro de la ventana de rate limit (no contamina a los
+  // demás tests, que ya corrieron).
+  describe('Rate Limiting (B-03)', () => {
+    it('should have rate limiting active', async () => {
+      // IP ficticia por X-Forwarded-For: el rate limit se prueba contra esta IP
+      // y NO contamina la IP real del desarrollador (con trust proxy activo).
+      const ipFicticia = '203.0.113.99';
+
+      // Leer el límite efectivo desde el header (express-rate-limit con standardHeaders)
+      const probe = await axios.get(`${API_URL}/api/sorteos/cuota`, {
+        headers: { 'X-Forwarded-For': ipFicticia },
+        validateStatus: () => true,
+      });
+      const limitHeader = probe.headers['ratelimit-limit'] || probe.headers['x-ratelimit-limit'];
+      const limit = parseInt(String(limitHeader), 10) || 100;
+
+      // Disparar limit + 5 requests: garantiza cruzar el límite (429 en alguno)
+      const requests = [];
+      for (let i = 0; i < limit + 5; i++) {
+        requests.push(
+          axios.get(`${API_URL}/api/sorteos/cuota`, {
+            headers: { 'X-Forwarded-For': ipFicticia },
+            validateStatus: () => true,
+          })
+        );
+      }
+
+      const responses = await Promise.all(requests);
+      const rateLimited = responses.some(r => r.status === 429);
+
+      if (!rateLimited) {
+        console.warn(`RATE LIMITING BUG: No 429 after ${limit + 5} requests (limit=${limit})`);
+      }
+      expect(rateLimited).toBe(true);
     });
   });
 });

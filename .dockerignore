@@ -1,0 +1,44 @@
+node_modules/
+**/node_modules/
+api/node_modules/
+web/node_modules/
+shared-modules/**/node_modules/
+
+# Builds
+api/dist/
+web/.next/
+web/out/
+api/build/
+
+# Entornos y secretos
+**/.env
+**/.env.local
+**/.env.*.local
+api/.env
+web/.env.local
+
+# Datos locales y sesiones
+api/prisma/dev.db
+api/capturas/
+api/.instagram-session.json
+api/.instagram-session-info.json
+
+# Git y edición
+.git/
+.agents/
+.devin/
+.vscode/
+.idea/
+
+# Logs
+Logs/
+logs/
+*.log
+
+# No necesario para la API
+DOCUMENTACION/
+web/
+herramientas-extras/
+Scripts/
+prueba.md
+skills-lock.json
