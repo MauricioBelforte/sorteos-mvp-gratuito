@@ -12,7 +12,9 @@ COPY . .
 
 # Playwright: instalar Chromium + Chrome real (canal "chrome") con deps del SO.
 # pnpm/npm-run user root. Los browsers quedan en ~/.cache/ms-playwright.
+# xauth es requerido por xvfb-run al arrancar el contenedor.
 RUN npx playwright install --with-deps chromium chrome || npx playwright install chromium
+RUN apt-get update && apt-get install -y --no-install-recommends xauth && rm -rf /var/lib/apt/lists/*
 
 # Instalar dependencias de la API y compilar
 WORKDIR /app/api
