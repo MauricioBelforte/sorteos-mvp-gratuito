@@ -221,7 +221,7 @@
 - [x] Deploy de la API (Render/Railway) con Playwright instalado (Log 40: API LIVE en `https://sorteos-api-y0dp.onrender.com`; Dockerfile + Xvfb directo; DB conectada vía pooler Supabase `aws-0-sa-east-1.pooler.supabase.com` porque el host directo no resuelve IPv4; cuota 200 OK, CORS 403 evil, headers seguridad OK)
 - [x] Deploy de la web (Vercel) con NEXT_PUBLIC_API_URL pública (Log: web READY en `https://sorteos-mvp-gratuito-nine.vercel.app`; monorepo npm workspaces para que Vercel resuelva `@shared/seo`; `web/vercel.json` fuerza detección Next.js)
 - [x] Ajustar CORS y rate limiting en la API (Log 39: CORS restringido + 204 y 403, rate limit 100/15min configurable, helmet, error handler, trust proxy, test aislado por IP ficticia; Log: agregado `https://sorteos-mvp-gratuito-nine.vercel.app` a origenesPermitidos)
-- [ ] Verificar sorteo end-to-end en producción (cualquier persona sin registrarse)
+- [ ] Verificar sorteo end-to-end en producción (cualquier persona sin registrarse) — **BLOQUEADO por OOM**: el scraping real de Instagram con Chrome headful supera los 512 MB del plan free de Render (muere durante el scroll anónimo; confirmado por Render "Ran out of memory"). La Estrategia G corre perfecta local (2393/2399) y arranca en la nube, pero el contenedor free no le alcanza la RAM. En espera de decisión (Log 43): Apify primario gratis / limitar modelo / plan de pago. Nada se descarta: Estrategia G + Dockerfile + Xvfb quedan en standby listos para escalar.
 - [ ] Ejecutar plan de testings (módulo 06) y documentar resultados
 
 ## Tareas Pendientes Prioritarias
