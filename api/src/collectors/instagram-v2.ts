@@ -107,22 +107,33 @@ export async function recolectarInstagramV2(
     // que SE usa Chrome visible siempre que sea posible (local), salvo que se
     // provean cookies cookies pegadas (entonces se fuerza headless como
     // respaldo). En la nube hay que verificar Chrome real + xvfb (carpeta 06).
-    // CHROME_MODE=headless fuerza Chrome REAL en modo headless (sin ventana ni
-    // Xvfb en la nube): el headless NUEVO de Chrome (chromium.launch headless:true
-    // con channel:'chrome') es mucho menos detectable que el viejo headless, y
-    // evita el ~80-100 MB de Xvfb + compositor → deja a los 512 MB margen real
-    // para el scroll infinito. Default: visible (Estrategia G al 99% verificada).
-    const fuerzaHeadless = process.env.CHROME_MODE === 'headless';
-    const headless = !!cookieStr || fuerzaHeadless;
-    // En modo visible el canal SIEMPRE es Chrome real (channel:'chrome'); en
-    // headless forzado también se usa Chrome real (channel:'chrome') para que IG
-    // no detecte Chromium de Playwright.
-    const launchOptions: { headless: boolean; channel?: string; args?: string[] } = headless
+    // Modos de lanzamiento (módulo 10, 2026-08-07):
+    //   default   -> Chrome REAL visible (Estrategia G al 99% verificada).
+    //   CHROME_MODE=headless  -> Chrome REAL headless (headless nuevo de Chrome,
+    //     sin Xvfb en la nube; ahorra el Xvfb pero Chrome igual renderiza páginas,
+    //     solo ~7 MB menos que visible en el contenedor).
+    //   CHROME_MODE=chromium -> Chromium EMBEBIDO de Playwright headless. Es el
+    //     que menos memoria usa del contenedor (5 0-80 MB menos que Chrome real,
+    //     no necesita Xvfb), pero Instagram lo detecta MÁS (histórico: capturó
+    //     59/2538 vs 2393/2399 del Chrome real visible). Válido para posts CHICOS
+    //     (~150-300) donde el observable no pasa; riesgo: corta ~15 en posts
+    //     grandes, y sin ser exacto 100%.
+    const modoChrome = (process.env.CHROME_MODE || '').toLowerCase();
+    const usaLightChromium = modoChrome === 'chromium';
+    const fuerzaHeadless = modoChrome === 'headless';
+    const headless = !!cookieStr || fuerzaHeadless || usaLightChromium;
+    // visible: SIEMPRE Chrome real (channel:'chrome').
+    // headless forzado: Chrome real (channel:'chrome') para no aumentar detección.
+    // chromium embebido: Sin channel → Playwright busca su Chromium empaquetado;
+    //   headless:true. Es el que menos pesa del contenedor 512 MB.
+    const launchOptions: { headless: boolean; channel?: string; args?: string[] } = usaLightChromium
+      ? { headless: true, args: ARGS_NAVEGADOR }
+      : headless
       ? { headless: true, channel: 'chrome', args: ARGS_NAVEGADOR }
       : { headless: false, channel: 'chrome', args: ARGS_NAVEGADOR };
     let channelDisponible = true;
     console.log(
-      `Instagram V2: Iniciando scraping de ${url}${cookieStr ? ' (con cookies pegadas)' : usaSesionGuardada ? ' (con sesión guardada)' : ` (sin sesión, Chrome ${headless ? 'headless (CHROME_MODE)' : 'visible'})`}`
+      `Instagram V2: Iniciando scraping de ${url}${cookieStr ? ' (con cookies pegadas)' : usaSesionGuardada ? ` (con sesión guardada)` : ` (sin sesión, ${usaLightChromium ? 'Chromium embebido headless (CHROME_MODE=chromium)' : `Chrome ${headless ? 'headless (CHROME_MODE)' : 'visible'}`})`}`
     );
     try {
       browser = await chromium.launch(launchOptions);

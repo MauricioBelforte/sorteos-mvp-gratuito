@@ -36,4 +36,4 @@ EXPOSE 4000
 # headless nuevo no necesita ventana y se ahorran ~80-100 MB del contenedor,
 # dejando margen real para el scroll infinito (módulo 10, 2026-08-07).
 # Sin CHROME_MODE (visible, default) se arranca Xvfb 720p como antes.
-CMD ["sh", "-c", "if [ \"$CHROME_MODE\" != 'headless' ]; then Xvfb :99 -screen 0 1280x720x24 -ac >/tmp/xvfb.log 2>&1 & export DISPLAY=:99; i=0; until [ -S /tmp/.X11-unix/X99 ] || [ $i -ge 15 ]; do sleep 1; i=$((i+1)); done; if [ -S /tmp/.X11-unix/X99 ]; then echo 'Xvfb listo en :99'; else echo 'AVISO: Xvfb no respondió en :99'; cat /tmp/xvfb.log 2>/dev/null; fi; else echo 'Modo CHROME_MODE=headless: sin Xvfb (ahorro RAM)'; fi; exec node dist/index.js"]
+CMD ["sh", "-c", "if [ -z \"$CHROME_MODE\" ]; then Xvfb :99 -screen 0 1280x720x24 -ac >/tmp/xvfb.log 2>&1 & export DISPLAY=:99; i=0; until [ -S /tmp/.X11-unix/X99 ] || [ $i -ge 15 ]; do sleep 1; i=$((i+1)); done; if [ -S /tmp/.X11-unix/X99 ]; then echo 'Xvfb listo en :99'; else echo 'AVISO: Xvfb no respondió en :99'; cat /tmp/xvfb.log 2>/dev/null; fi; else echo \"CHROME_MODE=$CHROME_MODE: sin Xvfb (ahorro RAM)\"; fi; exec node dist/index.js"]
