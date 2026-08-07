@@ -7,18 +7,17 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Copiar el repo completo (la API depende de file:../shared-modules/mercadopago)
+# Copiar el repo completo (monorepo con workspaces: api, web, shared-modules/*)
 COPY . .
 
-# Playwright: instalar Chromium + Chrome real (canal "chrome") con deps del SO.
-# pnpm/npm-run user root. Los browsers quedan en ~/.cache/ms-playwright.
-# xauth es requerido por xvfb-run: en su lugar arrancamos Xvfb directamente (ver CMD).
+# Playwright: instalar Chromium y Chrome real (canal "chrome") con deps del SO.
+# pnpm/npm user root. xauth es requerido por apt de chrome.
 RUN npx playwright install --with-deps chromium chrome || npx playwright install chromium
 RUN apt-get update && apt-get install -y --no-install-recommends xauth && rm -rf /var/lib/apt/lists/*
 
-# Instalar dependencias de la API y compilar
+# Instalar dependencias del workspace (raíz) y compilar solo la API
+RUN npm install --no-audit --no-fund --workspaces
 WORKDIR /app/api
-RUN npm install --no-audit --no-fund
 RUN npx prisma generate
 RUN npm run build
 
