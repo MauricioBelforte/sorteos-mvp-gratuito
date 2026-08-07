@@ -411,3 +411,28 @@ Ningún bloqueador actual.
 - Actualizado DOCUMENTACION/01-Backend-API/plan-actual/07-Resultados-Testings.md
 - Actualizado DOCUMENTACION/02-Frontend-Web/plan-actual/07-Resultados-Testings.md
 - Detectados problemas de entorno para iniciar servidores
+
+### 17. Optimización de RAM Render (07/08/2026) — PROPUESTA DEVIN-SWE 1.6
+- **Agente:** Devin-SWE 1.6
+- **Fecha:** 2026-08-07 17:42:00
+- **Estado:** Propuesta completada, pendiente de revisión
+- **Carpeta:** `Mensajes entre modelos/08-Optimizacion-RAM-Render/`
+- **Descripción:** Propuesta de Virtual DOM Streaming para optimizar RAM en Render free (512 MB)
+- **Ubicación:** DOCUMENTACION/10-Optimizacion-Ram-Render/Devin-SWE 1.6/
+- **Enfoque:** Virtual DOM Streaming (chunking + purga agresiva + GC manual)
+- **Documentación creada:**
+  - 01-Requerimientos.md (125 líneas)
+  - 02-Analisis.md (242 líneas)
+  - 03-Diseno.md (461 líneas)
+  - 04-Codigo.md (549 líneas)
+  - 05-Checklist.md (284 líneas)
+  - 06-Plan-Testings.md (566 líneas)
+- **Mensaje:** 2026-08-07_17-42-00_3-DEVIN-SWE1.6-propuesta-virtual-dom.md
+- **Estimación de ahororro:** Boot ~340 MB, Peak ~390 MB (target <400 MB)
+- **Precisión esperada:** ~97% (similar a Estrategia G clásica)
+- **Diferencias clave:**
+  - DeepSeek: Chromium headless (mi propuesta usa Chrome real)
+  - Composer 2.5: GraphQL-first (mi propuesta usa DOM con chunking)
+- **Ventajas:** Mayor precisión que Chromium headless, más mantenible que GraphQL
+- **Riesgos:** Media complejidad, requiere testing exhaustivo
+- **Próximo paso:** Usuario debe revisar propuesta y decidir si proceder con implementación
