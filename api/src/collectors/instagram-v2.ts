@@ -107,13 +107,22 @@ export async function recolectarInstagramV2(
     // que SE usa Chrome visible siempre que sea posible (local), salvo que se
     // provean cookies cookies pegadas (entonces se fuerza headless como
     // respaldo). En la nube hay que verificar Chrome real + xvfb (carpeta 06).
-    const headless = !!cookieStr;
+    // CHROME_MODE=headless fuerza Chrome REAL en modo headless (sin ventana ni
+    // Xvfb en la nube): el headless NUEVO de Chrome (chromium.launch headless:true
+    // con channel:'chrome') es mucho menos detectable que el viejo headless, y
+    // evita el ~80-100 MB de Xvfb + compositor → deja a los 512 MB margen real
+    // para el scroll infinito. Default: visible (Estrategia G al 99% verificada).
+    const fuerzaHeadless = process.env.CHROME_MODE === 'headless';
+    const headless = !!cookieStr || fuerzaHeadless;
+    // En modo visible el canal SIEMPRE es Chrome real (channel:'chrome'); en
+    // headless forzado también se usa Chrome real (channel:'chrome') para que IG
+    // no detecte Chromium de Playwright.
     const launchOptions: { headless: boolean; channel?: string; args?: string[] } = headless
-      ? { headless: true, args: ARGS_NAVEGADOR }
+      ? { headless: true, channel: 'chrome', args: ARGS_NAVEGADOR }
       : { headless: false, channel: 'chrome', args: ARGS_NAVEGADOR };
     let channelDisponible = true;
     console.log(
-      `Instagram V2: Iniciando scraping de ${url}${cookieStr ? ' (con cookies pegadas)' : usaSesionGuardada ? ' (con sesión guardada)' : ' (sin sesión, Chrome visible)'}`
+      `Instagram V2: Iniciando scraping de ${url}${cookieStr ? ' (con cookies pegadas)' : usaSesionGuardada ? ' (con sesión guardada)' : ` (sin sesión, Chrome ${headless ? 'headless (CHROME_MODE)' : 'visible'})`}`
     );
     try {
       browser = await chromium.launch(launchOptions);
