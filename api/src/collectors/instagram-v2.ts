@@ -20,6 +20,22 @@ import { CuotaAgotadaError } from '../lib/cuota';
 
 const UMBRAL_MINIMO = 0.5;
 
+// Flags de lanzamiento del navegador: reducen memoria/uso de /dev/shm para no
+// matar el contenedor de Render (plan free: 512 MB RAM) durante scroll infinito.
+const ARGS_NAVEGADOR = [
+  '--disable-blink-features=AutomationControlled',
+  '--window-size=1280,900',
+  '--disable-dev-shm-usage',
+  '--no-sandbox',
+  '--disable-gpu',
+  '--disable-extensions',
+  '--disable-background-networking',
+  '--disable-background-timer-throttling',
+  '--disable-backgrounding-occluded-windows',
+  '--disable-renderer-backgrounding',
+  '--disable-ipc-flooding-protection',
+];
+
 export { validarUrlInstagram };
 
 function deduplicar(participantes: Participante[]): Participante[] {
@@ -77,8 +93,8 @@ export async function recolectarInstagramV2(
     // respaldo). En la nube hay que verificar Chrome real + xvfb (carpeta 06).
     const headless = !!cookieStr;
     const launchOptions: { headless: boolean; channel?: string; args?: string[] } = headless
-      ? { headless: true }
-      : { headless: false, channel: 'chrome', args: ['--disable-blink-features=AutomationControlled', '--window-size=1280,900'] };
+      ? { headless: true, args: ARGS_NAVEGADOR }
+      : { headless: false, channel: 'chrome', args: ARGS_NAVEGADOR };
     let channelDisponible = true;
     console.log(
       `Instagram V2: Iniciando scraping de ${url}${cookieStr ? ' (con cookies pegadas)' : usaSesionGuardada ? ' (con sesión guardada)' : ' (sin sesión, Chrome visible)'}`
@@ -96,8 +112,8 @@ export async function recolectarInstagramV2(
         channelDisponible = false;
         browser = await chromium.launch(
           hayDisplay
-            ? { headless: false, args: ['--disable-blink-features=AutomationControlled', '--window-size=1280,900'] }
-            : { headless: true, args: ['--disable-blink-features=AutomationControlled', '--window-size=1280,900'] }
+            ? { headless: false, args: ARGS_NAVEGADOR }
+            : { headless: true, args: ARGS_NAVEGADOR }
         );
       } else {
         throw new Error('No se pudo lanzar el navegador');

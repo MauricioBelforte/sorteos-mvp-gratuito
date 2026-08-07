@@ -7,6 +7,10 @@ FROM node:20-slim
 
 WORKDIR /app
 
+# Cota el heap de Node: deja RAM disponible para Chrome real + Xvfb dentro del
+# plan free de Render (512 MB). Chrome se lanza con flags de bajo consumo.
+ENV NODE_OPTIONS=--max-old-space-size=384
+
 # Copiar el repo completo (monorepo con workspaces: api, web, shared-modules/*)
 COPY . .
 
