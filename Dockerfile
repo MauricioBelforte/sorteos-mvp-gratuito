@@ -16,11 +16,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends xauth xvfb && r
 # Instalar dependencias del workspace (raíz) y compilar solo la API
 RUN npm install --no-audit --no-fund --workspaces
 
-# Playwright: instalar Chromium y Chrome real (canal "chrome") con deps del SO,
-# SIEMPRE DESPUÉS del npm install para usar la versión exacta de playwright del
-# workspace y que el canal "chrome" quede disponible. Fallo = build falla.
-RUN npx playwright install --with-deps chromium chrome
 WORKDIR /app/api
+
+# Playwright: instalar Chromium y Chrome real (canal "chrome") con deps del SO,
+# SIEMPRE DESPUÉS del npm install y DESDE /app/api, donde el binario "playwright"
+# queda disponible (es dependencia del workspace "api"). Fallo = build falla.
+RUN npm exec playwright -- install --with-deps chromium chrome
 RUN npx prisma generate
 RUN npm run build
 
