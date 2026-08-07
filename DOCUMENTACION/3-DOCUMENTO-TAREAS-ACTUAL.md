@@ -219,8 +219,8 @@
 - [x] Migrar Prisma de SQLite a PostgreSQL (provider + migración inicial)
 - [x] Subir repo a GitHub incluyendo shared-modules
 - [x] Deploy de la API (Render/Railway) con Playwright instalado (Log 40: API LIVE en `https://sorteos-api-y0dp.onrender.com`; Dockerfile + Xvfb directo; DB conectada vía pooler Supabase `aws-0-sa-east-1.pooler.supabase.com` porque el host directo no resuelve IPv4; cuota 200 OK, CORS 403 evil, headers seguridad OK)
-- [ ] Deploy de la web (Vercel) con NEXT_PUBLIC_API_URL pública
-- [x] Ajustar CORS y rate limiting en la API (Log 39: CORS restringido + 403, rate limit 100/15min configurable, helmet, error handler, trust proxy, test aislado por IP ficticia)
+- [x] Deploy de la web (Vercel) con NEXT_PUBLIC_API_URL pública (Log: web READY en `https://sorteos-mvp-gratuito-nine.vercel.app`; monorepo npm workspaces para que Vercel resuelva `@shared/seo`; `web/vercel.json` fuerza detección Next.js)
+- [x] Ajustar CORS y rate limiting en la API (Log 39: CORS restringido + 204 y 403, rate limit 100/15min configurable, helmet, error handler, trust proxy, test aislado por IP ficticia; Log: agregado `https://sorteos-mvp-gratuito-nine.vercel.app` a origenesPermitidos)
 - [ ] Verificar sorteo end-to-end en producción (cualquier persona sin registrarse)
 - [ ] Ejecutar plan de testings (módulo 06) y documentar resultados
 
