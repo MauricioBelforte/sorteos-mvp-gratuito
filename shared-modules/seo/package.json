@@ -1,0 +1,18 @@
+{
+  "name": "@shared/seo",
+  "version": "1.0.0",
+  "description": "Módulo de SEO técnico reutilizable para Latinoamérica",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["seo", "latinoamerica", "metadata", "sitemap"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
