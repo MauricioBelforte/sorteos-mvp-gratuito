@@ -1,46 +1,52 @@
 # 07 - Resultados de Testings - Optimización de RAM para la Estrategia G en Render free
 
-> **Estado: IMPLEMENTADO y probado en LOCAL (2026-08-07).** Pendiente: deploy en Render y verificación de producción (P09).
+> **Estado: RESUELTO EN PRODUCCIÓN ✅ (2026-08-07).** La solución es `CHROME_MODE=chromium`
+> (Chromium embebido headless). El free de 512 MB ya NO muere por OOM: el flujo anónimo
+> capturó 144/152 en prod sin `server_failed`.
 
 ## Resumen
 
 | Fecha | Pruebas ejecutadas | Resultado | Comentario |
 |-------|--------------------|-----------|------------|
-| 2026-08-07 | P01 flags de Chrome (5 variantes) | **Fallo parcial → corrección** | `--single-process` crashea Chrome real; el resto es estable. Se eliminó `--single-process` de `ARGS_NAVEGADOR` |
-| 2026-08-07 | P02 endpoint post real (152) | **PASS** | 142 participantes capturados (baseline ~140); umbral 142/152 cumplido |
-| 2026-08-07 | P03 log `MEM:` | **PASS** | `MEM: inicio recolección {"usadoMb":0,"limiteMb":0,"rssMb":140}` (local sin cgroup: usado/limite = 0) |
-| 2026-08-07 | P04 post grande | No ejecutado en local | Post de 2538 es pesado para testear en cada iteración; se cubre en producción |
+| 2026-08-07 | P01 flags de Chrome (5 variantes) | **Fallo parcial → corrección** | `--single-process` crashea Chrome real; se eliminó |
+| 2026-08-07 | P02 endpoint post real (152), visible | **PASS** | 142 participantes local (baseline) |
+| 2026-08-07 | P03 log `MEM:` | **PASS** | Log funciona (rssMb:140 en local, sin cgroup) |
+| 2026-08-07 | P02b visible + bloqueo imágenes (local) | **PASS** | 144 participantes |
+| 2026-08-07 | P06a `CHROME_MODE=headless` (Chrome real headless, prod) | **FAIL** | OOM exit 137 a ~82s (boot 477/512); solo ~7 MB mejor que visible |
+| 2026-08-07 | **P09 `CHROME_MODE=chromium` (Chromium embebido, prod)** | **PASS** | 144 participantes anónimo, **sin OOM**, ~5 min |
+| 2026-08-07 | P04 post grande (2538) | Pendiente | Chromium embebido capturaría ~59 de 2538 (histórico); evaluar Apify/plan pago |
 
 ## Detalle por prueba
 
 ### P01 — Lanzamiento de Chrome con flags
-- **Resultado:** Corregido (ver tabla de variantes abajo)
-- **Evidencia:** script `prueba-flags.mjs` (temporal, eliminado): `launch OK`, `goto OK`, `cargado estable`
-- **Variantes probadas (Chrome real headful + channel chrome):**
-
-| Variante | Resultado |
-|---|---|
-| base + `--single-process --no-zygote` | **CRASH**: navegador DISCONNECTED al cargar la página |
-| base + `--no-zygote` | Estable |
-| base + `--js-flags=--max-old-space-size=384 --expose-gc` | Estable |
-| base + `--disable-software-rasterizer --disable-features=TranslateUI,VizDisplayCompositor` | Estable |
-| base + todos (sin single-process) | Estable |
+- **Resultado:** Corregido — `--single-process` eliminado (CRASH: navegador DISCONNECTED al cargar página). El resto estable.
 
 ### P02 — Endpoint sobre post (152)
-- **Resultado:** PASS — 142 participantes
-- **Evidencia:** logs de la corrida local: `Instagram V2: Scroll anónimo completo -> 142 participantes`, `cumple el umbral (142/152)`, `Captura registrada en DB: 6dc17216-edc0-470e-92fa-b1afd87fc6b1 (142 participantes)`, respaldo en disco `api/capturas/analizar-C347268uDMm-2026-08-07T18-51-47.json`.
+- **Resultado:** PASS — 142 participantes (local, flags + reciclado). Captura de referencia: `6dc17216-...`.
 
 ### P03 — Log `MEM:`
-- **Resultado:** PASS — el log aparece en la corrida real (`MEM: inicio recolección ... rssMb:140`). En local no hay cgroup (usado/limite = 0); en Render se leerán los valores reales.
+- **Resultado:** PASS. En local usado/limite=0 (sin cgroup); en Render se leen cgroup v2 reales.
 
-### P04 — Post grande (2538, limitado)
-- **Resultado:** Pendiente (se hará en producción con `cantidadMaxima` acotada para no alargar la prueba local)
+### P06a — `CHROME_MODE=headless` (Chrome real, headless nuevo)
+- **Resultado:** FAIL en producción. `MEM: inicio recolección {"usadoMb":477,"limiteMb":512}` → OOM `exit 137` a los ~82s, request 502. El headless nuevo de Chrome sigue renderizando páginas; solo ahorra el Xvfb (~7 MB).
+
+### P09 — `CHROME_MODE=chromium` (Chromium embebido headless) — **SOLUCIÓN**
+- **Local:** 144/152 capturados (igual que Chrome real) en `analizar` local con sesión guardada.
+- **Producción:** deploy `dep-d9r40rjocm9c73a8mr40` live 20:33 UTC.
+  - POST `/api/sorteos/analizar` sobre `C347268uDMm` (anónimo sin sesión).
+  - **RESULTADO: 144 participantes** → captura DB `bb4a2753-0765-46b4-9e4c-0ed4c24a7da2` (20:38:39 UTC, sesion=anonima).
+  - **Sin `server_failed`/OOM en eventos de Render** (diferencia clave vs. los intentos con Chrome real).
+  - Tardó ~5 min (el request superó el timeout del cliente de la prueba, pero el server completó y persistió en DB).
+- **Qué se cambió:** `instagram-v2.ts` (variable `CHROME_MODE=chromium`) + `Dockerfile` (Xvfb solo si no hay CHROME_MODE). Commit `d13d674`.
 
 ## Incidentes encontrados
 
-1. **`--single-process` crashea Chrome real** (P01): el navegador se desconecta al navegar (error `Target page, context or browser has been closed`). **Solución:** eliminado de `ARGS_NAVEGADOR`. Documentado en `04-Codigo.md` y en el comentario del código.
+1. **`--single-process` crashea Chrome real** (P01). Eliminado de `ARGS_NAVEGADOR`.
+2. **Chrome real (visible o headless) NO cabe en 512 MB** — el boot es 477-484 MB y el scroll suma el pico → OOM (~82s). Los microahorros (imágenes, Xvfb, flags) son ≤37 MB.
+3. **Chromium embebido resuelve free**: consume suficiente menos para no OOM y captura igual en posts chicos.
 
 ## Conclusión
 
-- La versión optimizada **captura igual que el baseline** en local (142/152 ≈ 140) y los logs de memoria funcionan.
-- Queda por validar en Render: pico de RAM < 512 MB durante el scroll completo con `MEM:` en vivo (P09) y el post grande (P04).
+- **El MVP free queda resuelto con `CHROME_MODE=chromium`** para el flujo anónimo: capta ~100% en posts chicos (144/152) sin OOM en 512 MB.
+- **Para posts grandes (~2500+)**, Chromium embebido pierde parte (histórico 59 vs 2538): requiere Chrome real (Render Standard USD 25/mes) o Apify como primario.
+- Queda el P04 (post grande en prod con Chromium emputado) como pendiente opcional del MVP free.

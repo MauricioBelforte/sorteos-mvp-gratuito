@@ -233,7 +233,9 @@
 - [x] Reciclado de página en `estrategiaScrollAnonimo` (cada 40 iter, reusando `recargarPagina()` extraída del reinicio)
 - [x] Xvfb `-screen 0 1280x720x24` en el Dockerfile
 - [x] **PRUEBA LOCAL (post 152):** 142 participantes capturados (baseline ~140), estable, log `MEM:` con rssMb 140
-- [ ] Deploy en Render y verificación de 512 MB: log `MEM:` con pico < 512 MiB, sin reinicio → desbloquear E2E de producción
+- [x] **Verificado que Chrome real (visible o headless) NO cabe en 512 MB** (boot 477-484 MB → OOM exit 137 a ~82s, 3 deploys confirmados con eventos Render)
+- [x] **SOLUCIÓN: `CHROME_MODE=chromium` (Chromium embebido headless)** — headless real en 512 MB. Verificado en prod (deploy `dep-d9r40rjocm9c73a8mr40`): captura anónima **144/152 sin OOM** en el post de prueba. Commit `d13d674`.
+- [ ] Desbloquear E2E de producción del flujo anónimo con el Chromium embebido (post promedio). **Nota:** posts grandes (~2500+) pierden parcial con Chromium (histórico ~59/2538); para eso = Chrome real en Render Standard (USD 25) o Apify primario.
 
 ## Tareas Pendientes Prioritarias
 
