@@ -224,6 +224,17 @@
 - [ ] Verificar sorteo end-to-end en producción (cualquier persona sin registrarse) — **BLOQUEADO por OOM**: el scraping real de Instagram con Chrome headful supera los 512 MB del plan free de Render (muere durante el scroll anónimo; confirmado por Render "Ran out of memory"). La Estrategia G corre perfecta local (2393/2399) y arranca en la nube, pero el contenedor free no le alcanza la RAM. En espera de decisión (Log 43): Apify primario gratis / limitar modelo / plan de pago. Nada se descarta: Estrategia G + Dockerfile + Xvfb quedan en standby listos para escalar.
 - [ ] Ejecutar plan de testings (módulo 06) y documentar resultados
 
+### Fase 19: Optimización de RAM para la Estrategia G en Render free (2026-08-07, módulo 10)
+- [x] Crear `DOCUMENTACION/10-Optimizacion-Ram-Render/` (plan-inicial + plan-actual, 7 archivos) con el plan de reducción de RAM: flags agresivos del navegador, reciclado de página, XDvfb chico, observabilidad cgroup
+- [x] Backup del código vigente (instagram-v2.ts, scroll-anon-completo.ts, Dockerfile) → `Obsoletos/10-Optimizacion-RAM-2026-08-07_15-40-22/`
+- [x] Implementar flags de RAM en `ARGS_NAVEGADOR` de instagram-v2.ts (no-zygote, js-flags max-old-space 384, expose-gc, disable-software-rasterizer, VizDisplayCompositor) + viewport 720p
+  - ⚠️ `--single-process` **eliminado** (crash verificado en local, ver Log 45)
+- [x] Crear `api/src/lib/memoria.ts` (`memoriaContenedor()`: cgroup v2 + RSS) y log `MEM:` en el scroll
+- [x] Reciclado de página en `estrategiaScrollAnonimo` (cada 40 iter, reusando `recargarPagina()` extraída del reinicio)
+- [x] Xvfb `-screen 0 1280x720x24` en el Dockerfile
+- [x] **PRUEBA LOCAL (post 152):** 142 participantes capturados (baseline ~140), estable, log `MEM:` con rssMb 140
+- [ ] Deploy en Render y verificación de 512 MB: log `MEM:` con pico < 512 MiB, sin reinicio → desbloquear E2E de producción
+
 ## Tareas Pendientes Prioritarias
 
 ### Alta Prioridad

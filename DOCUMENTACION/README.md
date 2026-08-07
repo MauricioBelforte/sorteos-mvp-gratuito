@@ -55,6 +55,10 @@ DOCUMENTACION/
 ├── 08-Testing-Seguridad/
 │   ├── plan-inicial/
 │   └── plan-actual/
+├── 09-Pruebas-Extraccion-IG/
+├── 10-Optimizacion-Ram-Render/
+│   ├── plan-inicial/
+│   └── plan-actual/
 ```
 
 ## Archivos Obligatorios por Componente
@@ -84,7 +88,7 @@ Cada carpeta (`plan-inicial/` y `plan-actual/`) contiene estos archivos:
 
 ## Próximo Número de Componente
 
-El próximo componente a crear debe usar el número: **09**
+El próximo componente a crear debe usar el número: **11**
 
 ## Logs
 

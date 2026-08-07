@@ -22,15 +22,9 @@ const UMBRAL_MINIMO = 0.5;
 
 // Flags de lanzamiento del navegador: reducen memoria/uso de /dev/shm para no
 // matar el contenedor de Render (plan free: 512 MB RAM) durante scroll infinito.
-// Flags de lanzamiento del navegador: reducen memoria/uso de /dev/shm para no
-// matar el contenedor de Render (plan free: 512 MB RAM) durante scroll infinito.
-// Módulo 10 (optimización RAM, 2026-08-07): se agregan flags agresivos de ahorro
-// (single-process + no-zygote consolidan los ~15 procesos de Chrome en uno solo;
-// js-flags acota el heap del renderer; expose-gc permite GC manual) y se baja el
-// viewport a 720p (menos tiles/layers que rastrear).
 const ARGS_NAVEGADOR = [
   '--disable-blink-features=AutomationControlled',
-  '--window-size=1280,720',
+  '--window-size=1280,900',
   '--disable-dev-shm-usage',
   '--no-sandbox',
   '--disable-gpu',
@@ -40,16 +34,6 @@ const ARGS_NAVEGADOR = [
   '--disable-backgrounding-occluded-windows',
   '--disable-renderer-backgrounding',
   '--disable-ipc-flooding-protection',
-  // --- Optimización de RAM (Render free 512 MB) ---
-  // NOTA (verificado 2026-08-07): `--single-process` CRASHEA Chrome real
-  // (la navegación se cae; issue del renderer en proceso único con Playwright).
-  // Se conserva `--no-zygote` + `--js-flags` + `--expose-gc` (estables y
-  // ahorradores). `--expose-gc` habilita window.gc() para GC manual.
-  '--no-zygote',
-  '--js-flags=--max-old-space-size=384',
-  '--expose-gc',
-  '--disable-software-rasterizer',
-  '--disable-features=TranslateUI,VizDisplayCompositor',
 ];
 
 export { validarUrlInstagram };

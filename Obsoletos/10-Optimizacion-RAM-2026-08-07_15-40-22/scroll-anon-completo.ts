@@ -1,7 +1,6 @@
 import { Participante } from '../types';
 import { ContextoScraping } from './types';
 import { extraerParesDOM, aceptarConsentimiento } from '../instagram';
-import { logMemoria } from '../../lib/memoria';
 
 // Estrategia G: scroll anónimo completo (descubierta el 2026-08-03).
 // Verificado en vivo en el post de prueba (comment_count: 152):
@@ -166,44 +165,6 @@ export async function estrategiaScrollAnonimo(ctx: ContextoScraping): Promise<Pa
   // hasta 3 recargas completas antes de rendirse.
   const reiniciosMaximos = 3;
   let reinicios = 0;
-  // Módulo 10 (optimización RAM, 2026-08-07): cerrar y reabrir la página cada N
-  // iteraciones libera el DOM acumulado del scroll infinito (un reload() NO
-  // libera la memoria del renderer; cerrar la página SÍ — issue Playwright #6319).
-  // `vistos` vive en Node, NO en la página: al reciclar no se pierde nada.
-  // PEQUEÑOS posts (≤40 iter) no llegan a reciclar → sin regresión.
-  const RECICLADOS_MAXIMOS = 8;
-  let reciclados = 0;
-  const ITERACIONES_POR_RECICLO = 40;
-
-  logMemoria('inicio recolección (Estrategia G)');
-
-  // Cierra y reabre la página (libera RAM del DOM acumulado) y la deja lista
-  // arriba para seguir el scroll desde donde se quedó el contador `vistos`.
-  const recargarPagina = async (motivo: string): Promise<void> => {
-    try {
-      if (contextoAnonimo) {
-        const browser = page.context().browser();
-        await page.close().catch(() => {});
-        page = await contextoAnonimo.newPage();
-        await page.setExtraHTTPHeaders({
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        });
-        await page.goto(url, { waitUntil: 'networkidle', timeout: 40000 }).catch(() => {});
-      } else {
-        await page.reload({ waitUntil: 'networkidle', timeout: 40000 }).catch(() => {});
-      }
-    } catch (e) {
-      console.error(`Instagram V2 [Scroll anónimo]: error en ${motivo}:`, (e as Error).message);
-    }
-    await page.waitForTimeout(2500);
-    await aceptarConsentimiento(page);
-    await cerrarDialogos();
-    await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
-    await page.mouse.move(1000, 450).catch(() => {});
-    await page.mouse.wheel(0, -5000).catch(() => {});
-    await page.waitForTimeout(1500);
-  };
-
   for (let i = 0; i < iteraciones; i++) {
     const antes = vistos.size;
     try {
@@ -229,19 +190,28 @@ export async function estrategiaScrollAnonimo(ctx: ContextoScraping): Promise<Pa
       console.log(`Instagram V2 [Scroll anónimo]: reinicio ${reinicios}/${reiniciosMaximos} tras ${sinProgreso} ciclos sin progreso (${vistos.size} capturados)`);
       sinProgreso = 0;
       rebotado = false;
-      await recargarPagina('reinicio');
-      continue;
-    }
-
-    // Módulo 10 (optimización RAM): reciclado periódico de la página para no
-    // acumular el DOM del scroll infinito (main gasto de RAM del contenedor).
-    if (i > 0 && i % ITERACIONES_POR_RECICLO === 0 && reciclados < RECICLADOS_MAXIMOS) {
-      reciclados += 1;
-      console.log(`Instagram V2 [Scroll anónimo]: reciclado de página ${reciclados}/${RECICLADOS_MAXIMOS} en iteración ${i} (${vistos.size} capturados)`);
-      sinProgreso = 0;
-      rebotado = false;
-      await recargarPagina('reciclado');
-      logMemoria(`post-reciclado ${reciclados} (${vistos.size} capturados)`);
+      try {
+        if (contextoAnonimo) {
+          const browser = page.context().browser();
+          await page.close().catch(() => {});
+          page = await contextoAnonimo.newPage();
+          await page.setExtraHTTPHeaders({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          });
+          await page.goto(url, { waitUntil: 'networkidle', timeout: 40000 }).catch(() => {});
+        } else {
+          await page.reload({ waitUntil: 'networkidle', timeout: 40000 }).catch(() => {});
+        }
+      } catch (e) {
+        console.error('Instagram V2 [Scroll anónimo]: error en reinicio:', (e as Error).message);
+      }
+      await page.waitForTimeout(2500);
+      await aceptarConsentimiento(page);
+      await cerrarDialogos();
+      await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
+      await page.mouse.move(1000, 450).catch(() => {});
+      await page.mouse.wheel(0, -5000).catch(() => {});
+      await page.waitForTimeout(1500);
       continue;
     }
 

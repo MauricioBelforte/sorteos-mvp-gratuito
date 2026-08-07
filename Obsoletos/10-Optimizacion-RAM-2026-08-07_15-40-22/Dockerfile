@@ -34,5 +34,4 @@ EXPOSE 4000
 # Display virtual para Chrome visible (headful) de la Estrategia G.
 # Xvfb se arranca en background (-ac desactiva la autorización X, no necesita xauth)
 # y node en primer plano. Se espera hasta que el socket X exista antes de lanzar node.
-# 1280x720 (720p) en vez de 1280x1024: Xvfb consume menos RAM (módulo 10).
-CMD ["sh", "-c", "Xvfb :99 -screen 0 1280x720x24 -ac >/tmp/xvfb.log 2>&1 & export DISPLAY=:99; i=0; until [ -S /tmp/.X11-unix/X99 ] || [ $i -ge 15 ]; do sleep 1; i=$((i+1)); done; if [ -S /tmp/.X11-unix/X99 ]; then echo 'Xvfb listo en :99'; else echo 'AVISO: Xvfb no respondió en :99'; cat /tmp/xvfb.log 2>/dev/null; fi; exec node dist/index.js"]
+CMD ["sh", "-c", "Xvfb :99 -screen 0 1280x1024x24 -ac >/tmp/xvfb.log 2>&1 & export DISPLAY=:99; i=0; until [ -S /tmp/.X11-unix/X99 ] || [ $i -ge 15 ]; do sleep 1; i=$((i+1)); done; if [ -S /tmp/.X11-unix/X99 ]; then echo 'Xvfb listo en :99'; else echo 'AVISO: Xvfb no respondió en :99'; cat /tmp/xvfb.log 2>/dev/null; fi; exec node dist/index.js"]
