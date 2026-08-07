@@ -54,10 +54,10 @@
 - [ ] Optimizar queries de Prisma
 
 ### Producción
-- [ ] Configurar Supabase
-- [ ] Migrar schema a PostgreSQL
-- [ ] Configurar variables de entorno producción
-- [ ] Deploy en producción
+- [x] Configurar Supabase
+- [x] Migrar schema a PostgreSQL
+- [x] Configurar variables de entorno producción
+- [x] Deploy en producción (Log 40: API LIVE en Render `https://sorteos-api-y0dp.onrender.com`, DB vía pooler Supabase `aws-0-sa-east-1`)
 
 ## Estado General
 **Completado:** 80%  

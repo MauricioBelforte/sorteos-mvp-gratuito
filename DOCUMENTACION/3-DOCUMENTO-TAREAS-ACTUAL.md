@@ -218,7 +218,7 @@
 - [x] Crear base de datos PostgreSQL gratuita (Supabase/Neon)
 - [x] Migrar Prisma de SQLite a PostgreSQL (provider + migración inicial)
 - [x] Subir repo a GitHub incluyendo shared-modules
-- [ ] Deploy de la API (Render/Railway) con Playwright instalado
+- [x] Deploy de la API (Render/Railway) con Playwright instalado (Log 40: API LIVE en `https://sorteos-api-y0dp.onrender.com`; Dockerfile + Xvfb directo; DB conectada vía pooler Supabase `aws-0-sa-east-1.pooler.supabase.com` porque el host directo no resuelve IPv4; cuota 200 OK, CORS 403 evil, headers seguridad OK)
 - [ ] Deploy de la web (Vercel) con NEXT_PUBLIC_API_URL pública
 - [x] Ajustar CORS y rate limiting en la API (Log 39: CORS restringido + 403, rate limit 100/15min configurable, helmet, error handler, trust proxy, test aislado por IP ficticia)
 - [ ] Verificar sorteo end-to-end en producción (cualquier persona sin registrarse)

@@ -190,10 +190,10 @@ Realiza tu sorteo hasta 1000 comentarios gratis. Herramienta de sorteos y promoc
 - ✅ Módulo Mercado Pago reutilizable
 - ✅ Integración de módulos en MVP
 
-### Fase 3 (Pendiente)
+### Fase 3 (En curso)
 - ⏳ Testing completo
 - ⏳ Deploy en Vercel
-- ⏳ Configuración de Supabase
+- ✅ Configuración de Supabase (pooler `aws-0-sa-east-1.pooler.supabase.com`)
 - ⏳ Configuración de Upstash
 
 ### Fase 4 (Pendiente)

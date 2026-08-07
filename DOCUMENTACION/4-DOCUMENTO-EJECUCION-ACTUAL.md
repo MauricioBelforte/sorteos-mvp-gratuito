@@ -277,21 +277,24 @@ Módulo de Mercado Pago.
 
 ## 7. Deploy en Producción
 
-### 7.1 Supabase (PostgreSQL)
+> **Estado (Log 40):** API ya desplegada y LIVE en Render: `https://sorteos-api-y0dp.onrender.com`. La web aún se despliega en Vercel (próximo paso).
+
+### 7.1 Supabase (PostgreSQL) ✅
 1. Crear proyecto en Supabase
-2. Obtener DATABASE_URL
+2. Obtener DATABASE_URL — **usar el pooler**: `postgresql://postgres.<REF>@aws-0-sa-east-1.pooler.supabase.com:5432/postgres` (el host directo `db.<ref>.supabase.co` no resuelve IPv4 y falla desde Render)
 3. Actualizar .env con DATABASE_URL de Supabase
-4. Ejecutar `npx prisma db push`
+4. Ejecutar `npx prisma db push` o `prisma migrate deploy`
 
 ### 7.2 Vercel (Frontend)
 1. Conectar repo de GitHub a Vercel
-2. Configurar variables de entorno
+2. Configurar variables de entorno (`NEXT_PUBLIC_API_URL=https://sorteos-api-y0dp.onrender.com`)
 3. Deploy automático en cada push
 
-### 7.3 Backend (Producción)
-1. Deploy en Vercel, Railway, o similar
-2. Configurar variables de entorno
-3. Configurar webhook URL en Mercado Pago
+### 7.3 Backend (Producción) ✅ Render
+1. Deploy en Render (Dockerfile propio: Chrome + Xvfb `:99` + `node` en primer plano con `DISPLAY=:99`)
+2. Configurar variables de entorno (10: DATABASE_URL pooler, JWT_SECRET, MP tokens, APIFY, cuota, pase, WEB_APP_URL, API_BASE_URL, RATE_LIMIT)
+3. Configurar webhook URL en Mercado Pago (`API_BASE_URL/api/pagos/webhook`)
+4. Redeploy vía API REST: `POST /v1/services/{id}/deploys` con `{"clearCache":"do_not_clear"}`
 
 ## 8. Monitoreo
 
