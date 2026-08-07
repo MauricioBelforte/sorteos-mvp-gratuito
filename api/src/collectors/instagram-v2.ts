@@ -86,14 +86,19 @@ export async function recolectarInstagramV2(
     try {
       browser = await chromium.launch(launchOptions);
     } catch {
-      // Chrome no instalado: fallback a Chromium de Playwright (puede quedar en ~15)
+      // Chrome no instalado: fallback a Chromium de Playwright (puede quedar en ~15).
+      // Si no hay X server (DISPLAY ausente, típico de la nube), usar headless.
       if (!headless) {
-        console.log('Instagram V2: Chrome no disponible, usando Chromium de Playwright');
+        const hayDisplay = !!process.env.DISPLAY;
+        console.log(
+          `Instagram V2: Chrome no disponible, usando Chromium de Playwright${hayDisplay ? ' (con X display)' : ' headless (sin X server)'}`
+        );
         channelDisponible = false;
-        browser = await chromium.launch({
-          headless: false,
-          args: ['--disable-blink-features=AutomationControlled', '--window-size=1280,900'],
-        });
+        browser = await chromium.launch(
+          hayDisplay
+            ? { headless: false, args: ['--disable-blink-features=AutomationControlled', '--window-size=1280,900'] }
+            : { headless: true, args: ['--disable-blink-features=AutomationControlled', '--window-size=1280,900'] }
+        );
       } else {
         throw new Error('No se pudo lanzar el navegador');
       }

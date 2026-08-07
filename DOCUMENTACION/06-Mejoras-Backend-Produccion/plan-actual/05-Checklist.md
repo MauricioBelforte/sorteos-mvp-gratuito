@@ -31,6 +31,7 @@
 - [x] Techo final con sesión: **235/237 comentarios visibles (99.2%)** en `Cm7p75TJVub`; los 2 restantes son menciones truncadas (`@gustavo.pedro.148`, `@gustavodiaz2580`) que IG no renderiza completas en el DOM web
 - [x] E2E confirmado por endpoint real (Log 34): `POST /api/sorteos/analizar` con sesión guardada → 234 participantes deduplicados; 232/232 comentarios visibles del usuario capturados (1 sin match = caption del autor, excluido por diseño); 235 del diag pierde 1 por dedupe `usuario|comentario`
 - [x] Verificar que el scraping funciona desde la API en la nube
+- [x] Fix (Log 42): instalación de browsers Playwright movida DESPUÉS del `npm install` — fabricaba versión no coincidente con el runtime y `|| npx playwright install chromium` silenciaba la falta del canal chrome; se agregó `xvfb` explícito, espera del socket X en el CMD y fallback del orquestador a Chromium headless cuando no hay DISPLAY. Pendiente de redeploy para verificar en vivo.
 - [x] Evaluar Estrategia G en nube: instalar Chrome real (`google-chrome-stable`) + `xvfb` en el Dockerfile de Render (la G depende del binario Chrome, no del display); si IG la detecta, usar Apify con `sessionid` como fuente primaria
 
 ### Monetización Nube: Cuota Apify + Cola + Pase Rápido (Log 23)

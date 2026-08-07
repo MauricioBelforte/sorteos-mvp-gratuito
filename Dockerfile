@@ -10,13 +10,16 @@ WORKDIR /app
 # Copiar el repo completo (monorepo con workspaces: api, web, shared-modules/*)
 COPY . .
 
-# Playwright: instalar Chromium y Chrome real (canal "chrome") con deps del SO.
-# pnpm/npm user root. xauth es requerido por apt de chrome.
-RUN npx playwright install --with-deps chromium chrome || npx playwright install chromium
-RUN apt-get update && apt-get install -y --no-install-recommends xauth && rm -rf /var/lib/apt/lists/*
+# Instalar xauth y xvfb (display virtual para Chrome visible de la Estrategia G)
+RUN apt-get update && apt-get install -y --no-install-recommends xauth xvfb && rm -rf /var/lib/apt/lists/*
 
 # Instalar dependencias del workspace (raíz) y compilar solo la API
 RUN npm install --no-audit --no-fund --workspaces
+
+# Playwright: instalar Chromium y Chrome real (canal "chrome") con deps del SO,
+# SIEMPRE DESPUÉS del npm install para usar la versión exacta de playwright del
+# workspace y que el canal "chrome" quede disponible. Fallo = build falla.
+RUN npx playwright install --with-deps chromium chrome
 WORKDIR /app/api
 RUN npx prisma generate
 RUN npm run build
@@ -25,5 +28,5 @@ EXPOSE 4000
 
 # Display virtual para Chrome visible (headful) de la Estrategia G.
 # Xvfb se arranca en background (-ac desactiva la autorización X, no necesita xauth)
-# y node en primer plano: Render detecta el puerto 4000 abierto.
-CMD ["sh", "-c", "Xvfb :99 -screen 0 1280x1024x24 -ac > /tmp/xvfb.log 2>&1 & export DISPLAY=:99; sleep 1; exec node dist/index.js"]
+# y node en primer plano. Se espera hasta que el socket X exista antes de lanzar node.
+CMD ["sh", "-c", "Xvfb :99 -screen 0 1280x1024x24 -ac >/tmp/xvfb.log 2>&1 & export DISPLAY=:99; i=0; until [ -S /tmp/.X11-unix/X99 ] || [ $i -ge 15 ]; do sleep 1; i=$((i+1)); done; if [ -S /tmp/.X11-unix/X99 ]; then echo 'Xvfb listo en :99'; else echo 'AVISO: Xvfb no respondió en :99'; cat /tmp/xvfb.log 2>/dev/null; fi; exec node dist/index.js"]
