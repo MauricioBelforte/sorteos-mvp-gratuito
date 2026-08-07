@@ -5,31 +5,51 @@
 ### 1.1 Arquitectura de Alto Nivel
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Frontend (Next.js)                    │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │   Home   │  │ Registro │  │  Login   │  │Dashboard │   │
-│  │ (Simplif)│  │ (Futuro) │  │ (Futuro) │  │ (Futuro) │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              │ HTTP/REST
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                    Backend API (Express)                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │   Auth   │  │ Sorteos  │  │  Pagos   │  │ Webhooks │   │
-│  │ (Futuro) │  │ (Sin Auth)│  │ (Futuro) │  │ (Futuro) │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                              │
-        ┌─────────────────────┼─────────────────────┐
-        │                     │                     │
-┌───────▼──────┐    ┌────────▼────────┐    ┌───────▼──────┐
-│  SQLite DB   │    │  Playwright     │    │ Mercado Pago │
-│  (Prisma)    │    │  (Scraping)     │    │   (Pagos)    │
-└──────────────┘    └─────────────────┘    └──────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                    Vercel — Web (Frontend)                    │
+│  Next.js 14 — sorteos-mvp-gratuito-nine.vercel.app           │
+│  Solo presentación: HTML/CSS/JS + ruleta + llamadas fetch     │
+└───────────────────────────┬──────────────────────────────────┘
+                            │ HTTPS /api/* (CORS restringido)
+                            ▼
+┌──────────────────────────────────────────────────────────────┐
+│             Render — API + Scraper (Backend)                  │
+│  Express + Playwright — sorteos-api-y0dp.onrender.com         │
+│  Abre Chrome real (Xvfb) para scraping (Estrategia G,         │
+│  scroll anónimo completo de Instagram)                        │
+└───────────────────────────┬──────────────────────────────────┘
+                            │ Prisma (PostgreSQL)
+                            ▼
+┌──────────────────────────────────────────────────────────────┐
+│               Supabase — PostgreSQL (Datos)                   │
+│  pooler: aws-0-sa-east-1.pooler.supabase.com                  │
+│  Sorteos, participantes, cuota Apify, cola, pagos, capturas   │
+└──────────────────────────────────────────────────────────────┘
 ```
+
+**Monorepo npm workspaces** (raíz del repo): `api/` + `web/` + `shared-modules/*` (seo, mercadopago) — Vercel instala desde la raíz y resuelve `@shared/seo`.
+
+**Flujo de un sorteo (producción):**
+
+```
+Usuario (navegador)
+  │
+  ▼
+Vercel (web) — pega la URL, configura ganadores, sortea
+  │  GET/POST https://sorteos-api-y0dp.onrender.com/api/...
+  ▼
+Render (API)
+  ├─ Scrapea la publicación (IG/YouTube/TikTok)
+  │    ├─ Estrategia G: Chrome real + Xvfb + scroll anónimo
+  │    └─ Respaldo: GraphQL, DOM, Apify, ScrapFly
+  ├─ Guarda sorteo + participantes en Supabase
+  └─ Responde ganadores determinísticos + hash de verificación
+  ▲
+  │
+Vercel muestra la ruleta animada y el resultado
+```
+
+**Roles:** Supabase = memoria (guarda datos) · Vercel = vidriera (muestra) · Render = manos (trabajo pesado: scraping con Chrome).
 
 ### 1.2 Arquitectura de Módulos Reutilizables
 
