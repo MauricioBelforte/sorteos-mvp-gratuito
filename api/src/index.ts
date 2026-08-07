@@ -25,6 +25,7 @@ app.set('trust proxy', 1);
 // (MercadoPago) no envían Origin, por lo que no se ven afectados.
 const origenesPermitidos = [
   process.env.WEB_APP_URL,
+  'https://sorteos-mvp-gratuito-nine.vercel.app',
   'http://localhost:3000',
   'http://127.0.0.1:3000',
 ].filter(Boolean) as string[];
