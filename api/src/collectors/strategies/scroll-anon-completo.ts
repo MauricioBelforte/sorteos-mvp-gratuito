@@ -41,6 +41,30 @@ const NAVBAR_USUARIOS = new Set([
 const UI_COMENTARIO_RE = /^(home|search|explore|reels|messages|notifications|create|profile|settings|suggested)\1/i;
 const LIKES_POST_RE = /(liked by|me gusta a)\b|(?:^| )d by and \d+ others|and \d+ others$/i;
 
+// Módulo 10 (optimización RAM, 2026-08-07): el DOM de comentarios es texto
+// (llega por XHR/GraphQL); las imágenes/videos/fuentes solo agregan MB de
+// buffers de renderizado. Bloquearlas reduce el pico de RAM del contenedor
+// (Render free 512 MB) SIN afectar la captura. El handler se registra con
+// page.route / context.route: si se registra en el contexto, cubre también las
+// páginas nuevas que se abran al reciclar/recargar.
+async function bloquearRecursosPesados(scope: import('playwright').Page | import('playwright').BrowserContext): Promise<void> {
+  await scope
+    .route('**/*', (route) => {
+      const tipo = route.request().resourceType();
+      switch (tipo) {
+        case 'image':
+        case 'media':
+        case 'font':
+          return route.abort();
+        default:
+          return route.continue();
+      }
+    })
+    .catch(() => {
+      /* si ya hay una route registrada, no es bloqueante */
+    });
+}
+
 export async function estrategiaScrollAnonimo(ctx: ContextoScraping): Promise<Participante[]> {
   const { url, autorExcluido, cantidadMaxima, cantidadEsperada } = ctx;
   const vistos = new Map<string, Participante>();
@@ -56,6 +80,7 @@ export async function estrategiaScrollAnonimo(ctx: ContextoScraping): Promise<Pa
       const browser = ctx.page.context().browser();
       if (browser) {
         contextoAnonimo = await browser.newContext();
+        await bloquearRecursosPesados(contextoAnonimo);
         page = await contextoAnonimo.newPage();
         await page.setExtraHTTPHeaders({
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -69,6 +94,10 @@ export async function estrategiaScrollAnonimo(ctx: ContextoScraping): Promise<Pa
       page = ctx.page;
     }
   }
+  // Sin contexto anónimo (sin sesión): el scroll usa la página del orquestador;
+  // bloquear en la página actual (screen global del contexto) para que las
+  // imágenes que el scroll infinito agregaría no se rendericen.
+  await bloquearRecursosPesados(page);
 
   const limpiar = (t: string): string => {
     const texto = t.trim().replace(TIMESTAMP_RE, '').trim();
