@@ -195,18 +195,26 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
     }
   };
 
-  // ---- RAM GOVERNOR (propuesta Gemini 3.6) ----
-  // ÚNICA fuente de reciclado: se recicla la página solo si el cgroup del
-  // contenedor supera el umbral (evita el OOM ANTES de llegar al límite).
-  // En posts chicos nunca dispara (la RAM queda baja) → cero regresión vs G
-  // clásica. NO reciclar por iteración: corta la carga de IG (verificado).
+  // ---- RAM GOVERNOR (propuesta Gemini 3.6, ajustada) ----
+  // ÚNICA fuente de reciclado: se recicla SOLO si la memoria del contenedor
+  // supera el umbral (evita el OOM ANTES de llegar al límite). En posts chicos
+  // nunca dispara (la RAM queda baja) → cero regresión vs G clásica.
+  // Ajuste 2026-08-08: el reciclaje de PÁGINA no libera el renderer (la RAM del
+  // DOM gigante queda retenida) → se recicla el CONTEXTO ANÓNIMO COMPLETO.
+  // Umbral bajado a 0.60 (margen real antes de los 512 Mi) y RSS propio como
+  // doble señal (protege también sin cgroup, ej. localhost con DOM gigante).
   let reciclados = 0;
-  const RECICLADOS_MAXIMOS = 6;
-  const UMBRAL_RAM = 0.72;
+  const RECICLADOS_MAXIMOS = 10;
+  const UMBRAL_RAM = 0.6;
+  const UMBRAL_RSS_MB = 400;
   const debeGobernarMemoria = (): boolean => {
     const m = memoriaContenedor();
     if (m.limiteMb > 0 && m.usadoMb >= m.limiteMb * UMBRAL_RAM) {
-      console.log(`G-Zero [RAM Governor]: ${m.usadoMb}/${m.limiteMb} MB >= ${Math.round(UMBRAL_RAM * 100)}% -> reciclar`);
+      console.log(`G-Zero [RAM Governor]: ${m.usadoMb}/${m.limiteMb} MB >= ${Math.round(UMBRAL_RAM * 100)}% -> reciclar contexto`);
+      return true;
+    }
+    if (m.rssMb >= UMBRAL_RSS_MB) {
+      console.log(`G-Zero [RAM Governor]: RSS ${m.rssMb} MB >= ${UMBRAL_RSS_MB} -> reciclar contexto`);
       return true;
     }
     return false;
@@ -243,16 +251,24 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
   const recargarPaginaGZero = async (motivo: string): Promise<void> => {
     try {
       page.removeListener('response', onResponseGraphQL);
+      const browser = ctx.page.context().browser();
       if (contextoAnonimo) {
-        await page.close().catch(() => {});
-        page = await contextoAnonimo.newPage();
-        await page.setExtraHTTPHeaders({
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        });
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
+        // Cerrar el contexto COMPLETO libera el renderer (poda dom no basta:
+        // la RAM del DOM gigante queda retenida en Chromium).
+        await contextoAnonimo.close().catch(() => {});
+        contextoAnonimo = null;
+        if (browser) {
+          contextoAnonimo = await browser.newContext();
+          await bloquearRecursosPesados(contextoAnonimo);
+          page = await contextoAnonimo.newPage();
+          await page.setExtraHTTPHeaders({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          });
+        }
       } else {
         await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
       }
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
       page.on('response', onResponseGraphQL);
     } catch (e) {
       console.error(`Instagram V2 [G-Zero]: error en ${motivo}:`, (e as Error).message);
