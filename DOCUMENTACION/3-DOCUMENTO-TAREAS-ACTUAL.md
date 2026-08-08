@@ -237,6 +237,23 @@
 - [x] **SOLUCIÓN: `CHROME_MODE=chromium` (Chromium embebido headless)** — headless real en 512 MB. Verificado en prod (deploy `dep-d9r40rjocm9c73a8mr40`): captura anónima **144/152 sin OOM** en el post de prueba. Commit `d13d674`.
 - [ ] Desbloquear E2E de producción del flujo anónimo con el Chromium embebido (post promedio). **Nota:** posts grandes (~2500+) pierden parcial con Chromium (histórico ~59/2538); para eso = Chrome real en Render Standard (USD 25) o Apify primario.
 
+### Fase 20b: Fix RAM Governor en posts chicos (2026-08-08)
+- [x] Detectar bug en vivo (log usuario, post Cm7p75TJVub de 254): el governor reciclaba en cadena (1/25 → 17/25) porque el boot del Chromium embebido deja `anon≈304/512 MB` (~59%) y el umbral `62%` dispara siempre; cada reciclaje resetea el scroll → captura clavada en 15 comentarios
+- [x] Fix en `scroll-anon-gzero.ts`: en posts **≤500** el governor solo interviene con emergencia real (total ≥92%); >500 conserva umbrales clásicos (62%/80%)
+- [x] Verificación local (post C347268uDMm 152): sorteo completado en ~9 s, **cero reciclajes** (antes el bucle lo clavaba en 15)
+- [x] Actualizar doc 5 (límites + registro de verificaciones + glosario)
+- [ ] Desplegar fix en prod (commit + push) y relanzar el sorteo Cm7p75TJVub para verificar captura completa
+
+### Fase 20: Estrategia Apify para sorteos de +700 comentarios (2026-08-08, módulo 11)
+- [x] Crear `DOCUMENTACION/11-Uso-de-Apify-plan-sorteos-mas-700/` (plan-inicial + plan-actual, 7 archivos) con la estrategia por franjas: ≤300 anónimo, 300-750 sesión guardada, 750+ Apify (crédito del negocio, US$5/mes free)
+- [x] Documentar costos reales de Apify (0.75 USD/1000 + ~0.11/corrida ≈ 0.86 USD por sorteo de 1000 → ~5-6 sorteos/mes con el free)
+- [x] Documentar el roadmap de negocio por fases: **Fase 1 = SEO orgánico (Google) sin promos** → **Fase 2 = cupones para sorteos gratis de 1000 comentarios regalados por Instagram a quien siga** → Fase 3 = monetización de la franja alta (Pase Rápido / plan Starter)
+- [x] Documentar el hallazgo clave: el actor actual (maxComments 200) degrada a ~15; la franja 750+ requiere un actor CON sesión validado antes de habilitar
+- [ ] Validar actor de Apify con sesión para 750-1000 (prueba T1 del plan de testings, requiere APIFY_TOKEN real)
+- [ ] Implementar el umbral `APIFY_UMBRAL_CANTIDAD` (default 750) en el selector de estrategia de instagram-v2.ts
+- [ ] Bajar `APIFY_CUOTA_MENSUAL` de 45 a 5 (alinear con el free de Apify)
+- [ ] Probar flujo de cuota agotada + Pase Rápido en la franja alta
+
 ## Tareas Pendientes Prioritarias
 
 ### Alta Prioridad

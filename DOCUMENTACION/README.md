@@ -61,6 +61,9 @@ DOCUMENTACION/
 ├── 10-Optimizacion-Ram-Render/
 │   ├── plan-inicial/
 │   └── plan-actual/
+├── 11-Uso-de-Apify-plan-sorteos-mas-700/
+│   ├── plan-inicial/
+│   └── plan-actual/
 ```
 
 ## Archivos Obligatorios por Componente
@@ -90,7 +93,7 @@ Cada carpeta (`plan-inicial/` y `plan-actual/`) contiene estos archivos:
 
 ## Próximo Número de Componente
 
-El próximo componente a crear debe usar el número: **11**
+El próximo componente a crear debe usar el número: **12**
 
 ## Logs
 

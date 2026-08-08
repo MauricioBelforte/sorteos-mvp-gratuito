@@ -209,8 +209,23 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
   const RECICLADOS_MAXIMOS = 25;
   const UMBRAL_ANON = 0.62;
   const UMBRAL_RSS_MB = 400;
+  // POSTS CHICOS: el governor NO debe reciclar por umbrales. El boot del
+  // Chromium embebido en prod ya deja anon≈304/512 MB (~59%) al arrancar, así
+  // que el umbral 62% dispara en la iteración 1 (falso positivo), y como el
+  // reciclado NO libera la RAM del renderer (verificado), se dispara en cadena
+  // reseteando el scroll → la captura queda clavada en ~15 comentarios.
+  // En chicos el DOM entra sobrado (144/152 probado sin reciclar), así que solo
+  // se interviene si la máquina está REALMENTE al límite (≥92% total).
+  const postChico = !!cantidadEsperada && cantidadEsperada <= 500;
   const debeGobernarMemoria = (): boolean => {
     const m = memoriaContenedor();
+    if (postChico) {
+      if (m.limiteMb > 0 && m.usadoMb >= m.limiteMb * 0.92) {
+        console.log(`G-Zero [RAM Governor]: total ${m.usadoMb}/${m.limiteMb} MB >= 92% -> reciclar contexto (emergencia)`);
+        return true;
+      }
+      return false;
+    }
     // Señal principal: memoria ANÓNIMA del cgroup (la que provoca OOM).
     // memory.current infla con page cache reclamable y disparaba en falso.
     if (m.limiteMb > 0 && m.anonMb > 0 && m.anonMb >= m.limiteMb * UMBRAL_ANON) {

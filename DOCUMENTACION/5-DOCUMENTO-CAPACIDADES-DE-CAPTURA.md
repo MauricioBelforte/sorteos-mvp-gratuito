@@ -39,6 +39,16 @@
   **190-239 comentarios** antes del límite.
 - Resumen: en posts de hasta ~300 el resultado es casi total; más allá se
   degrada y puede fallar con OOM. **Costo: $0.**
+- ⚠️ **Fix RAM Governor en posts chicos (2026-08-08):** el governor reciclaba
+  con `anon >= 62%`, pero el arranque del Chromium embebido en prod ya deja
+  `anon≈304/512 MB` (~59%), así que el umbral disparaba en la iteración 1 y en
+  cadena (reciclado 1/25, 2/25...), reseteando el scroll y clavando la captura
+  en ~15 comentarios (verificado en vivo: sorteo de 254 esperados terminó
+  atascado en 15 tras 17+ reciclajes). Hoy: **en posts ≤500 el governor solo
+  interviene en emergencia real (total ≥92%)** → los posts chicos vuelven a
+  capturarse completos sin reciclar (verificado local: 23 capturados en ~9 s sin
+  reciclajes, post C347268uDMm). Los medios/grandes (>500) conservan los
+  umbrales clásicos (62%/80%).
 
 ### 2) Iniciando sesión y sin gastar crédito de Apify
 
@@ -71,6 +81,62 @@
 - **Costo: créditos de Apify** (misma cuota que la opción 3; la sesión local
   no agrega costo extra pero tampoco ayuda al scraper externo que usa su
   propia sesión).
+
+---
+
+## ¿La sesión del dueño es mejor que la del usuario? (mito y realidad)
+
+No existe "una sesión mejor" para **capturar**: la sesión (tuya o de un visitante)
+solo le dice a Instagram "usuario logueado, confiame más" y le pide la totalidad
+de los comentarios; la capacidad de extracción ES LA MISMA con cualquiera de las
+dos. Lo que limita la captura no es de quién es la sesión: es la **RAM del
+contenedor free (512 MB)**. Por eso, con la misma sesión, en free se capturan
+~611 comentarios y con más RAM se capturan 2393/2393 (97%) del mismo post.
+
+| Aspecto | Sesión del DUEÑO (guardada) | Sesión de cada USUARIO (pegada en el front) |
+|---------|------------------------------|---------------------------------------------|
+| Capacidad de captura | Igual | Igual (no es mejor ni peor) |
+| Riesgo de ban | TODOS los sorteos pesan sobre TU cuenta → necesitás una **cuenta descartable** | El riesgo va sobre la cuenta del propio usuario, una por sorteo |
+| Concurrencia | La misma cuenta+IP para todos → lo más detectable | Cuentas distintas repartidas → menos sospechoso |
+| Privacidad | La sesión queda guardada en el servidor | Es por una sola recolección y no se guarda |
+| Facilidad de uso | Automática (no requiere nada del visitante) | Requiere que el visitante sepa pegar sus cookies (técnico, por eso está oculta) |
+
+**En resumen:** la sesión del usuario no captura más que la tuya — pero es
+igualmente válida. Para el techo de RAM (600-700 en el free) no cambia nada.
+La tuya es más cómoda; la del usuario es más segura ante baneos. La RAM sigue
+siendo el cuello de botella en todas las sesiones.
+
+---
+
+## ¿Se pueden sortear más de 600 comentarios GRATIS hoy? (Realidad 2026-08-08)
+
+**ESTRATEGIA DECIDIDA (2026-08-08, ver módulo 11):** franja 750+ → Apify con el
+crédito del negocio. Así el visitante sigue teniendo "sorteo gratis hasta 1000".
+
+- **≤300 comentarios:** sí, sin sesión (anónimo + Chromium embebido) 👍
+- **300 - 750:** sí, con la sesión guardada del dueño (aceptable; riesgo creciente de OOM hacia arriba) ⚠️
+- **751 - 1000:** Apify (gratis para el visitante; el negocio absorbe el crédito ~0.86 USD/sorteo) → **PENDIENTE de validar actor con sesión**
+- **1000+:** no en el free de Apify (10k ≈ 7.5 USD > 5 USD/mes) → plan pago o Render Standard
+
+**Plan de negocio por fases (del módulo 11):**
+1. Fase 1: SEO orgánico (Google) — sin campañas, validar uso.
+2. Fase 2 (futuro): cupones para sorteos gratis de 1000 comentarios, regalados
+   por Instagram a quien siga la comunidad (generación de viralidad).
+3. Fase 3: si el free no alcanza → Pase Rápido (monetización) o plan Apify Starter.
+
+| Vía | Costo | Qué da |
+|-----|-------|--------|
+| **Apify** (crédito) | ~0.75 USD por 1000 resultados + costo fijo por corrida (~0.11 USD) | Ideal para gigantes; hoy limitado a ~200 en el código (ver debajo) |
+| **Subir el plan de Render** (pago, ~25 USD/mes) | USD/mes | 2393/2538 (99%) verificado con más RAM |
+
+> ⚠️ **CONCLUSIÓN APIFY (2026-08-08):** hoy Apify **NO aporta nada** frente a lo
+> anónimo. El código llama al actor con `maxComments: 200` (`external-service.ts`)
+> porque con más de 200 ese actor degrada a solo ~15 comentarios (verificado), y
+> sin sesión propia devuelve apenas ~105-200. Es decir: se pagaría crédito para
+> obtener LO MISMO o MENOS que el scraper anónimo local (144-240, $0). Su único
+> valor futuro está en usar un actor CON sesión/proxies propia para posts
+> gigantes (2k-10k), lo que hoy ni está configurado ni probado. Sin `APIFY_TOKEN`
+> la estrategia ni siquiera se invoca, así que no gasta nada hoy.
 
 ---
 
@@ -126,6 +192,8 @@
 | 2026-08-07 | local / Chrome real headless | CU7wfBaLuQK (2538) | 596 (headless) | test local |
 | 2026-08-07 | local / Chrome real visible + sesión | CU7wfBaLuQK (2538) | 2393/2399 ~ **97%** | test local |
 | 2026-08-08 | prod free anónimo | CU7wfBaLuQK y CRcazwbsZdD (~1000) | OOM (512 MB) | events Render |
+| 2026-08-08 | **prod free anónimo / bug governor** | Cm7p75TJVub (254) | atascado en 15 tras 17+ reciclajes (gql=0) — **BUG fijo** | log en vivo usuario |
+| 2026-08-08 | local / Chromium embebido anónimo (post fix) | C347268uDMm (152) | 23 en ~9 s, cero reciclajes (completado) | test local |
 
 ---
 
@@ -177,7 +245,7 @@ Explicación de cada concepto técnico usado en este documento, en lenguaje simp
 | **G clásica** | La estrategia "normal" anterior del proyecto, basada en scroll + instrumentación de red. Funciona pero **sin mejoras de RAM**: capturó ~59/2538 en el post grande. |
 | **Poda del DOM** | Borrar de la memoria los bloques HTML ya leídos (los comentarios renderizados) para que no se acumule RAM. Es clave en G-Zero para posts grandes. |
 | **GraphQL / interceptor** | El truco de G-Zero: en vez de leer el HTML paginado, "escucha" las respuestas de datos que Instagram manda al navegador y extrae los comentarios de ahí directamente. |
-| **RAM Governor** | Sistema de G-Zero que vigila la memoria y la libera antes de que explote: recicla (cierra y recrea) el contexto del navegador o detiene guardando parciales. NO sirve si el proceso principal de pagado retiene la RAM (lo que pasó con Chrome embebido). |
+| **RAM Governor** | Sistema de G-Zero que vigila la memoria y la libera antes de que explote: recicla (cierra y recrea) el contexto del navegador o detiene guardando parciales. NO sirve si el proceso principal de pagado retiene la RAM (lo que pasó con Chrome embebido). Desde 2026-08-08 **no opera en posts chicos (≤500):** en prod el boot del Chromium ya toca el umbral y reciclaba en cadena sin liberar (capturas clavadas en ~15). Solo interviene en chicos si el total llega a 92%. |
 | **Estrategia externa / Apify** | Corre la captura **fuera** del servidor: un servicio externo (Apify) scrapea el post y devuelve los comentarios listos. No gasta tu RAM — solo crédito. |
 | **Cascada (fallback chain)** | El orden en que el sistema intenta estrategias cuando falla: intenta la principal (G-Zero) y si falla baja a alternativas (scroll, API, etc.). |
 
