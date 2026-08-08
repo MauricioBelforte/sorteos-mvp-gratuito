@@ -9,9 +9,14 @@ import pagosRoutes from './routes/pagos';
 import instagramRoutes from './routes/instagram';
 import capturasRoutes from './routes/capturas';
 import { procesarCola } from './lib/cola';
+import { restaurarSesionInstagram } from './lib/restaurar-sesion';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Reconstruir la sesión de Instagram desde env vars (Render free borra el
+// filesystem en cada deploy; la sesión del dueño debe sobrevivir).
+restaurarSesionInstagram();
 
 // Headers de seguridad (B-07): Protege contra XSS, clickjacking, MIME sniffing.
 app.use(helmet());
