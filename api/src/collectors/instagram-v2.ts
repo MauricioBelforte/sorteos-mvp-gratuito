@@ -14,6 +14,7 @@ import { estrategiaGraphQL } from './strategies/graphql-intercept';
 import { estrategiaApiRestInBrowser } from './strategies/api-rest-inbrowser';
 import { estrategiaDomScroll } from './strategies/dom-scroll';
 import { estrategiaScrollAnonimo } from './strategies/scroll-anon-completo';
+import { estrategiaScrollAnonimoGZero } from './strategies/scroll-anon-gzero';
 import { estrategiaServicioExterno } from './strategies/external-service';
 import { estrategiaScrapFly } from './strategies/scrapfly-external';
 import { CuotaAgotadaError } from '../lib/cuota';
@@ -218,17 +219,24 @@ export async function recolectarInstagramV2(
     // Sin sesión: G (scroll anónimo) va PRIMERO porque captura todo por sí sola
     // (verificado: 140 únicos) y las estrategias A/B/C la ensucian (clic en
     // "load more", apertura de modal) y marcan la IP ante Instagram.
+        // SCRAPER_MODE=gzero (módulo 10, propuesta Gemini 3.6): usa la variante
+    // G-Zero (interceptor GraphQL + DOM Wiping + RAM Governor) en vez de la
+    // G clásica, para posts grandes en la nube free. La G clásica NO se toca.
+    const usarGZero = process.env.SCRAPER_MODE === 'gzero';
+    const scrollAnonimo = usarGZero
+      ? { nombre: 'Scroll anónimo G-Zero', fn: estrategiaScrollAnonimoGZero }
+      : { nombre: 'Scroll anónimo completo', fn: estrategiaScrollAnonimo };
     const estrategias: { nombre: string; fn: EstrategiaFn }[] = ctx.tieneSesion
       ? [
           { nombre: 'GraphQL interception', fn: estrategiaGraphQL },
           { nombre: 'API REST in-browser', fn: estrategiaApiRestInBrowser },
           { nombre: 'DOM scroll', fn: estrategiaDomScroll },
-          { nombre: 'Scroll anónimo completo', fn: estrategiaScrollAnonimo },
+          scrollAnonimo,
           { nombre: 'ScrapFly externo', fn: estrategiaScrapFly },
           { nombre: 'Apify externo', fn: estrategiaServicioExterno },
         ]
       : [
-          { nombre: 'Scroll anónimo completo', fn: estrategiaScrollAnonimo },
+          scrollAnonimo,
           { nombre: 'GraphQL interception', fn: estrategiaGraphQL },
           { nombre: 'API REST in-browser', fn: estrategiaApiRestInBrowser },
           { nombre: 'DOM scroll', fn: estrategiaDomScroll },
