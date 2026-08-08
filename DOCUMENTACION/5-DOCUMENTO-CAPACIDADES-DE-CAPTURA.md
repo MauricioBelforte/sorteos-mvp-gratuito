@@ -55,6 +55,15 @@
 - **Verificado: hasta ~611 comentarios** (post de 1035, captura 611/1035 =
   59%) sin OOM.
 - Post: 150 comentarios: 144/152 (sesión guardada, sin OOM).
+- ⚠️ **Fix reuso de sesión en G-Zero (módulo 12, 2026-08-08):** el G-Zero
+  **descarta la sesión**: el commit que le dio contexto propio "SIEMPRE"
+  anónimo + el puesto 4º de la cascada en la rama sesión, así la sesión no
+  se usaba en la mejor estrategia. Ahora **con sesión el G-Zero reutiliza el
+  contexto logueado del orquestador** y va PRIMERO en la cascada; sin sesión
+  mantiene su contexto propio reciclable. Verificado local en post 254:
+  captura **224/254 (88%)** y cumple el umbral (vs 42 con el orden anterior,
+  vs 101 anónimo). El techo real con sesión en el plan free sigue rondando
+  **~600-700**; pasado eso el DOM acumula y el riesgo de OOM vuelve.
 - El techo real con sesión en el plan free ronda **~600-700**; pasado eso el
   DOM acumula y el riesgo de OOM vuelve.
 - Nota: con una máquina con más RAM (fuera del free) se logró **2393/2399
@@ -194,6 +203,7 @@ crédito del negocio. Así el visitante sigue teniendo "sorteo gratis hasta 1000
 | 2026-08-08 | prod free anónimo | CU7wfBaLuQK y CRcazwbsZdD (~1000) | OOM (512 MB) | events Render |
 | 2026-08-08 | **prod free anónimo / bug governor** | Cm7p75TJVub (254) | atascado en 15 tras 17+ reciclajes (gql=0) — **BUG fijo** | log en vivo usuario |
 | 2026-08-08 | local / Chromium embebido anónimo (post fix) | C347268uDMm (152) | 23 en ~9 s, cero reciclajes (completado) | test local |
+| 2026-08-08 | **local / sesión + reuso G-Zero (módulo 12)** | Cm7p75TJVub (254) | **224 (88%)**, cumple umbral (vs 42/101 previos) | test local |
 
 ---
 

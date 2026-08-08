@@ -244,6 +244,15 @@
 - [x] Actualizar doc 5 (límites + registro de verificaciones + glosario)
 - [ ] Desplegar fix en prod (commit + push) y relanzar el sorteo Cm7p75TJVub para verificar captura completa
 
+### Fase 21: Reuso de sesión en G-Zero (2026-08-08, módulo 12)
+- [x] Diagnosticar la caída de captura con sesión (42/254 en prod): el commit 6bf340f dio al G-Zero contexto propio SIEMPRE (anónimo) y la rama con sesión lo dejaba CUARTO en la cascada (GraphQL→API→DOM→G→externos) → la sesión no se usaba en la mejor estrategia
+- [x] Fix en `scroll-anon-gzero.ts`: con sesión guardada el G-Zero **reutiliza el contexto logueado del orquestador** (no lo cierra ni lo recrea); sin sesión mantiene el contexto propio reciclable; los reinicios con sesión usan `page.reload` (conservan cookies)
+- [x] Fix de cleanup en `scroll-anon-gzero.ts`: el cierre final del contexto solo aplica si `!tieneSesionGuardada` (corrige bug que cerraba el contexto del orquestador y rompía las estrategias siguientes)
+- [x] Reorden en `instagram-v2.ts`: con `SCRAPER_MODE=gzero` el G-Zero corre PRIMERO también en la rama con sesión (GraphQL/API/DOM/externos como quedó fallback)
+- [x] Verificación local E2E post 254 (sesión @del): **224/254 (88%) y cumple el umbral** — vs 42 (orden anterior) y 101 (anónimo)
+- [x] Actualizar doc 5 (límites con sesión + registro de verificaciones) + Log 52
+- [ ] Push + deploy; validar en prod post 254 y post grande con sesión (techo ~600-700)
+
 ### Fase 20: Estrategia Apify para sorteos de +700 comentarios (2026-08-08, módulo 11)
 - [x] Crear `DOCUMENTACION/11-Uso-de-Apify-plan-sorteos-mas-700/` (plan-inicial + plan-actual, 7 archivos) con la estrategia por franjas: ≤300 anónimo, 300-750 sesión guardada, 750+ Apify (crédito del negocio, US$5/mes free)
 - [x] Documentar costos reales de Apify (0.75 USD/1000 + ~0.11/corrida ≈ 0.86 USD por sorteo de 1000 → ~5-6 sorteos/mes con el free)

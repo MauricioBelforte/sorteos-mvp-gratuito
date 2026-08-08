@@ -226,23 +226,37 @@ export async function recolectarInstagramV2(
     const scrollAnonimo = usarGZero
       ? { nombre: 'Scroll anónimo G-Zero', fn: estrategiaScrollAnonimoGZero }
       : { nombre: 'Scroll anónimo completo', fn: estrategiaScrollAnonimo };
-    const estrategias: { nombre: string; fn: EstrategiaFn }[] = ctx.tieneSesion
+    // Módulo 12 (2026-08-08): G-Zero corrE PRIMERO también con sesión. En la
+    // rama sesión iba 4ª (tras GraphQL/API/DOM) llenando la página y dejando
+    // el contenedor al límite de RAM; y su contexto anónimo descartaba la
+    // sesión. Ahora (con sesión) reutiliza el contexto logueado del
+    // orquestador: fue el flujo de la captura 611/1035 verificada.
+    const estrategias: { nombre: string; fn: EstrategiaFn }[] = usarGZero
       ? [
+          scrollAnonimo,
           { nombre: 'GraphQL interception', fn: estrategiaGraphQL },
           { nombre: 'API REST in-browser', fn: estrategiaApiRestInBrowser },
           { nombre: 'DOM scroll', fn: estrategiaDomScroll },
-          scrollAnonimo,
           { nombre: 'ScrapFly externo', fn: estrategiaScrapFly },
           { nombre: 'Apify externo', fn: estrategiaServicioExterno },
         ]
-      : [
-          scrollAnonimo,
-          { nombre: 'GraphQL interception', fn: estrategiaGraphQL },
-          { nombre: 'API REST in-browser', fn: estrategiaApiRestInBrowser },
-          { nombre: 'DOM scroll', fn: estrategiaDomScroll },
-          { nombre: 'ScrapFly externo', fn: estrategiaScrapFly },
-          { nombre: 'Apify externo', fn: estrategiaServicioExterno },
-        ];
+      : ctx.tieneSesion
+        ? [
+            { nombre: 'GraphQL interception', fn: estrategiaGraphQL },
+            { nombre: 'API REST in-browser', fn: estrategiaApiRestInBrowser },
+            { nombre: 'DOM scroll', fn: estrategiaDomScroll },
+            scrollAnonimo,
+            { nombre: 'ScrapFly externo', fn: estrategiaScrapFly },
+            { nombre: 'Apify externo', fn: estrategiaServicioExterno },
+          ]
+        : [
+            scrollAnonimo,
+            { nombre: 'GraphQL interception', fn: estrategiaGraphQL },
+            { nombre: 'API REST in-browser', fn: estrategiaApiRestInBrowser },
+            { nombre: 'DOM scroll', fn: estrategiaDomScroll },
+            { nombre: 'ScrapFly externo', fn: estrategiaScrapFly },
+            { nombre: 'Apify externo', fn: estrategiaServicioExterno },
+          ];
 
     let mejorResultado: Participante[] = [];
 

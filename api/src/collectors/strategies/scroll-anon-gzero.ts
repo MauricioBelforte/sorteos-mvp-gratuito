@@ -3,6 +3,9 @@ import { ContextoScraping } from './types';
 import { extraerParesDOM, aceptarConsentimiento } from '../instagram';
 import { extraerComentariosDeGraphQL } from './graphql-intercept';
 import { memoriaContenedor, logMemoria } from '../../lib/memoria';
+import fs from 'fs';
+import path from 'path';
+import { SESSION_PATH } from '../instagram';
 
 // ============================================================================
 // Estrategia G-ZERO (propuesta Gemini 3.6, módulo 10, 2026-08-07).
@@ -56,28 +59,41 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
   // Sin sesión (prod) la recolección usaba la página del orquestador y el
   // governor no podía liberar la RAM (reload no suelta el renderer) → OOM en
   // posts de ~1000. Ahora SIEMPRE se usa un contexto dedicado cerrable.
+  // (2026-08-08, módulo 12): con SESION guardada se reutiliza el contexto del
+  // ORQUESTADOR (trae la sesión ya cargada): fue el flujo de la captura
+  // 611/1035 de la madrugada. El contexto propio NUEVO solo se crea sin
+  // sesión. El reciclado cierra el renderer compartido, no el de la sesión.
   let page = ctx.page;
   let contextoAnonimo: import('playwright').BrowserContext | null = null;
+  const tieneSesionGuardada =
+    ctx.tieneSesion &&
+    fs.existsSync(SESSION_PATH) &&
+    fs.existsSync(path.join(process.cwd(), '.instagram-session-info.json'));
   try {
     const browser = ctx.page.context().browser();
     if (browser) {
-      contextoAnonimo = await browser.newContext();
-      await bloquearRecursosPesados(contextoAnonimo);
-      page = await contextoAnonimo.newPage();
-      await page.setExtraHTTPHeaders({
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-      });
-      // domcontentloaded (NO networkidle): IG tir?? XHR continuos en posts
-      // grandes → networkidle nunca se calma y cuelga la corrida (verificado
-      // con post de 2538 comentarios, 2026-08-07). La captura entra igual
-      // por el listener GraphQL + DOM.
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      await page.waitForTimeout(3000);
-      await aceptarConsentimiento(page);
+      if (tieneSesionGuardada && !contextoAnonimo) {
+        // Reutilizar el contexto del orquestador: ya tiene la sesión en las
+        // cookies y la página inicial navegada. NO lo cerramos ni lo rearmamos
+        // (las estrategias posteriores lo usan vía ctx.page).
+        contextoAnonimo = ctx.page.context();
+        await bloquearRecursosPesados(contextoAnonimo);
+      } else if (!tieneSesionGuardada) {
+        contextoAnonimo = await browser.newContext();
+        await bloquearRecursosPesados(contextoAnonimo);
+        page = await contextoAnonimo.newPage();
+        await page.setExtraHTTPHeaders({
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        });
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+        await page.waitForTimeout(3000);
+        await aceptarConsentimiento(page);
+      }
     }
   } catch (e) {
-    console.error('Instagram V2 [G-Zero]: no se pudo abrir contexto propio, usando el actual:', (e as Error).message);
+    console.error('Instagram V2 [G-Zero]: no se pudo preparar el contexto, usando el actual:', (e as Error).message);
     page = ctx.page;
+    contextoAnonimo = ctx.page.context();
   }
   await bloquearRecursosPesados(page);
 
@@ -276,7 +292,7 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
     try {
       page.removeListener('response', onResponseGraphQL);
       const browser = ctx.page.context().browser();
-      if (contextoAnonimo) {
+      if (contextoAnonimo && !tieneSesionGuardada) {
         // Cerrar el contexto COMPLETO libera el renderer (poda dom no basta:
         // la RAM del DOM gigante queda retenida en Chromium).
         await contextoAnonimo.close().catch(() => {});
@@ -289,6 +305,12 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
           });
         }
+      } else if (tieneSesionGuardada) {
+        // Con sesión se recicla la PÁGINA (no el contexto: el contexto es el
+        // del ORQUESTADOR y las siguientes estrategias lo siguen usando; y el
+        // reciclado de contexto TAMPOCO libera la RAM de la web logueada,
+        // verificado). La sesión queda intacta en las cookies del contexto.
+        await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
       } else {
         await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
       }
@@ -409,7 +431,7 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
   } catch {
     /* noop */
   }
-  if (contextoAnonimo) {
+  if (contextoAnonimo && !tieneSesionGuardada) {
     await contextoAnonimo.close().catch(() => {});
   }
   return [...vistos.values()].slice(0, cantidadMaxima);

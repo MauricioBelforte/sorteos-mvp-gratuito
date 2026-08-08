@@ -64,6 +64,12 @@ DOCUMENTACION/
 ├── 11-Uso-de-Apify-plan-sorteos-mas-700/
 │   ├── plan-inicial/
 │   └── plan-actual/
+├── 12-Optimizacion-RAM-Sesion-GZero/
+│   ├── plan-inicial/
+│   └── plan-actual/
+├── 13-Investigacion-Plataformas-Gratuitas-Scraping/
+│   ├── plan-inicial/
+│   └── plan-actual/
 ```
 
 ## Archivos Obligatorios por Componente
@@ -93,7 +99,7 @@ Cada carpeta (`plan-inicial/` y `plan-actual/`) contiene estos archivos:
 
 ## Próximo Número de Componente
 
-El próximo componente a crear debe usar el número: **12**
+El próximo componente a crear debe usar el número: **14**
 
 ## Logs
 
