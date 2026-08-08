@@ -204,8 +204,8 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
   // Umbral bajado a 0.60 (margen real antes de los 512 Mi) y RSS propio como
   // doble señal (protege también sin cgroup, ej. localhost con DOM gigante).
   let reciclados = 0;
-  const RECICLADOS_MAXIMOS = 10;
-  const UMBRAL_RAM = 0.6;
+  const RECICLADOS_MAXIMOS = 15;
+  const UMBRAL_RAM = 0.45;
   const UMBRAL_RSS_MB = 400;
   const debeGobernarMemoria = (): boolean => {
     const m = memoriaContenedor();
