@@ -51,31 +51,33 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
   const { url, autorExcluido, cantidadMaxima, cantidadEsperada } = ctx;
   const vistos = new Map<string, Participante>();
 
-  // ---- Contexto ANÓNIMO obligatorio (igual que G clásica) ----
+  // ---- Contexto propio SIEMPRE (anónimo puro) ----
+  // CRÍTICO (2026-08-08): antes solo se abría contexto nuevo si había sesión.
+  // Sin sesión (prod) la recolección usaba la página del orquestador y el
+  // governor no podía liberar la RAM (reload no suelta el renderer) → OOM en
+  // posts de ~1000. Ahora SIEMPRE se usa un contexto dedicado cerrable.
   let page = ctx.page;
   let contextoAnonimo: import('playwright').BrowserContext | null = null;
-  if (ctx.tieneSesion) {
-    try {
-      const browser = ctx.page.context().browser();
-      if (browser) {
-        contextoAnonimo = await browser.newContext();
-        await bloquearRecursosPesados(contextoAnonimo);
-        page = await contextoAnonimo.newPage();
-        await page.setExtraHTTPHeaders({
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        });
-        // domcontentloaded (NO networkidle): IG tir?? XHR continuos en posts
-        // grandes → networkidle nunca se calma y cuelga la corrida (verificado
-        // con post de 2538 comentarios, 2026-08-07). La captura entra igual
-        // por el listener GraphQL + DOM.
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-        await page.waitForTimeout(3000);
-        await aceptarConsentimiento(page);
-      }
-    } catch (e) {
-      console.error('Instagram V2 [G-Zero]: no se pudo abrir contexto anónimo, usando el actual:', (e as Error).message);
-      page = ctx.page;
+  try {
+    const browser = ctx.page.context().browser();
+    if (browser) {
+      contextoAnonimo = await browser.newContext();
+      await bloquearRecursosPesados(contextoAnonimo);
+      page = await contextoAnonimo.newPage();
+      await page.setExtraHTTPHeaders({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      });
+      // domcontentloaded (NO networkidle): IG tir?? XHR continuos en posts
+      // grandes → networkidle nunca se calma y cuelga la corrida (verificado
+      // con post de 2538 comentarios, 2026-08-07). La captura entra igual
+      // por el listener GraphQL + DOM.
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await page.waitForTimeout(3000);
+      await aceptarConsentimiento(page);
     }
+  } catch (e) {
+    console.error('Instagram V2 [G-Zero]: no se pudo abrir contexto propio, usando el actual:', (e as Error).message);
+    page = ctx.page;
   }
   await bloquearRecursosPesados(page);
 
@@ -216,8 +218,8 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
       return true;
     }
     // Señal B: uso total muy cerca del límite (por si anon no está disponible).
-    if (m.limiteMb > 0 && m.usadoMb >= m.limiteMb * 0.92) {
-      console.log(`G-Zero [RAM Governor]: total ${m.usadoMb}/${m.limiteMb} MB >= 92% -> reciclar contexto`);
+    if (m.limiteMb > 0 && m.usadoMb >= m.limiteMb * 0.8) {
+      console.log(`G-Zero [RAM Governor]: total ${m.usadoMb}/${m.limiteMb} MB >= 80% -> reciclar contexto`);
       return true;
     }
     if (m.rssMb >= UMBRAL_RSS_MB) {
@@ -324,6 +326,21 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
 
     // RAM Governor: si el contenedor superó el umbral, reciclar ANTES del OOM.
     // Local (sin cgroup: limiteMb=0) NUNCA dispara → prueba de paridad con G.
+    // Además, en posts GRANDES se fuerza un reciclaje preventivo del contexto
+    // cada RCICLADO_PREVENTIVO_CADA_ITER iteraciones (el renderer de Chromium
+    // acumula la RAM del DOM gigante incluso con poda; cerrar el contexto es la
+    // única forma real de liberarla - verificado 2026-08-08).
+    const RCICLADO_PREVENTIVO_CADA_ITER = 14;
+    const postGrande = !!cantidadEsperada && cantidadEsperada > 800;
+    if (postGrande && i > 0 && i % RCICLADO_PREVENTIVO_CADA_ITER === 0 && reciclados < RECICLADOS_MAXIMOS) {
+      reciclados += 1;
+      console.log(`Instagram G-Zero: reciclado preventivo ${reciclados}/${RECICLADOS_MAXIMOS} iter ${i} (${vistos.size} capturados)`);
+      sinProgreso = 0;
+      rebotado = false;
+      await recargarPaginaGZero('preventivo');
+      logMemoria(`post-preventivo ${reciclados} (${vistos.size} capturados)`);
+      continue;
+    }
     if (debeGobernarMemoria() && reciclados < RECICLADOS_MAXIMOS) {
       reciclados += 1;
       console.log(`Instagram G-Zero: reciclado ${reciclados}/${RECICLADOS_MAXIMOS} iter ${i} (${vistos.size} capturados)`);
@@ -337,7 +354,6 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
     // DOM Wiping: en posts grandes se poda en CADA iteración (el DOM crece
     // rápido y el renderer de Chromium es quien se come la RAM); en chicos
     // alcanza cada 3. Nunca cae por debajo de NUM_NODOS_MANTENER.
-    const postGrande = !!cantidadEsperada && cantidadEsperada > 800;
     if (i > 0 && (postGrande || i % DOM_WIPE_CADA_ITER === 0)) {
       await podarDom();
     }
