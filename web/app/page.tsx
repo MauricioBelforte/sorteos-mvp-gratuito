@@ -16,7 +16,7 @@ export default function Home() {
       <section className="container py-10 sm:py-14 text-center animate-fade-in">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4">
           <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-            Sorteos Gratuito para Instagram, TikTok y YouTube
+            Sorteos Gratuitos para Instagram, TikTok y YouTube
           </span>
         </h1>
         <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
@@ -27,8 +27,8 @@ export default function Home() {
 
       {/* Wizard de sorteo */}
       <section aria-label="Crear sorteo" className="container max-w-2xl mx-auto mb-10 sm:mb-14">
-        <Card padding="md" hover={false} className="sm:p-8 animate-fade-in">
-          <h2 className="text-xl font-bold text-center mb-6 text-gray-900">Crear Sorteo Gratis</h2>
+        <Card padding="lg" hover={false} className="sm:p-8 animate-fade-in">
+          <h2 className="text-xl font-bold text-center mb-6 text-gray-900">Pega la dirección de tu publicación</h2>
           <SorteoWizard />
         </Card>
       </section>

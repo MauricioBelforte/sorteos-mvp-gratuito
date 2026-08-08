@@ -41,6 +41,10 @@ export default function SorteoWizard() {
 
   const redDetectada = detectarRedSocial(url);
   const redInfo = getRedInfo(redDetectada);
+  // Opción avanzada de pegar cookies/sessionid: SOLO visible si se setea
+  // NEXT_PUBLIC_COOKIES_AVANZADAS=true (para pruebas internas). En producción
+  // queda oculta para el público.
+  const cookiesAvanzadasVisible = process.env.NEXT_PUBLIC_COOKIES_AVANZADAS === 'true';
 
   useEffect(() => {
     estadoCuota().then(setCuota).catch(() => setCuota(null));
@@ -440,7 +444,7 @@ export default function SorteoWizard() {
                 </div>
               )}
 
-              {!sesionIg?.conectado && (
+              {cookiesAvanzadasVisible && !sesionIg?.conectado && (
                 <button
                   type="button"
                   onClick={() => setMostrarCookies(!mostrarCookies)}
@@ -459,7 +463,7 @@ export default function SorteoWizard() {
                 </button>
               )}
 
-              {mostrarCookies && (
+              {cookiesAvanzadasVisible && mostrarCookies && (
                 <div className="mt-3 space-y-2 fade-in">
                   <ol className="list-decimal list-inside text-xs text-amber-800 space-y-1">
                     <li>Entrá a <span className="font-semibold">instagram.com</span> desde Chrome/Edge (logueado)</li>

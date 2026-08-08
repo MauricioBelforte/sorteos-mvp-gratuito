@@ -14,6 +14,7 @@ Estos 4 archivos reflejan el estado actual del sistema y se actualizan durante e
 | `2-DOCUMENTO-DISENO-ACTUAL.md` | Diseño detallado vigente | ✅ Creado |
 | `3-DOCUMENTO-TAREAS-ACTUAL.md` | Checklist de tareas con estado actual | ✅ Creado |
 | `4-DOCUMENTO-EJECUCION-ACTUAL.md` | Código de ejecución vigente | ✅ Creado |
+| `5-DOCUMENTO-CAPACIDADES-DE-CAPTURA.md` | Límites de captura de comentarios (sesión + Apify) — se actualiza con cada mejora | ✅ Creado |
 
 ### Plan Inicial
 
@@ -30,6 +31,7 @@ DOCUMENTACION/
 ├── 2-DOCUMENTO-DISENO-ACTUAL.md
 ├── 3-DOCUMENTO-TAREAS-ACTUAL.md
 ├── 4-DOCUMENTO-EJECUCION-ACTUAL.md
+├── 5-DOCUMENTO-CAPACIDADES-DE-CAPTURA.md
 ├── Plan Inicial/
 ├── 01-Backend-API/
 │   ├── plan-inicial/

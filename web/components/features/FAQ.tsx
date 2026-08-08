@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -17,7 +16,7 @@ export default function FAQ() {
     },
     {
       question: '¿Necesito iniciar sesión con mi cuenta de Instagram?',
-      answer: 'No, nunca te pediremos acceso a tu cuenta. Nuestra herramienta funciona directamente con la URL del post o el nombre de usuario, manteniendo tu privacidad y seguridad.',
+      answer: 'Tienes dos opciones: puedes hacer sorteos sin iniciar sesión mediante búsqueda anónima, o iniciar sesión para acceder a comentarios que la búsqueda anónima no pueda recuperar. En ambos casos tu privacidad y seguridad están protegidas.',
     },
     {
       question: '¿Cómo aseguran la equidad en el proceso de selección?',
@@ -72,9 +71,13 @@ export default function FAQ() {
               >
                 <span className="font-semibold text-gray-900 pr-4">{faq.question}</span>
                 {openIndex === index ? (
-                  <ChevronUp className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                  <svg className="w-5 h-5 text-gray-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                  </svg>
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                  <svg className="w-5 h-5 text-gray-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
                 )}
               </button>
               {openIndex === index && (

@@ -14,7 +14,7 @@ La documentación vive dentro de `DOCUMENTACION/`. La raíz del proyecto solo co
 
 ### DOCUMENTACION/ — Raíz de la carpeta (documentación general vigente)
 
-En la raíz de `DOCUMENTACION/` están los 4 documentos generales que reflejan el estado actual del sistema y deben ser consultados/modificados durante el desarrollo:
+En la raíz de `DOCUMENTACION/` están los 5 documentos generales que reflejan el estado actual del sistema y deben ser consultados/modificados durante el desarrollo:
 
 | Archivo | Contenido |
 |---------|-----------|
@@ -22,6 +22,7 @@ En la raíz de `DOCUMENTACION/` están los 4 documentos generales que reflejan e
 | `2-DOCUMENTO-DISENO-ACTUAL.md` | Diseño detallado vigente |
 | `3-DOCUMENTO-TAREAS-ACTUAL.md` | Checklist de tareas con estado actual |
 | `4-DOCUMENTO-EJECUCION-ACTUAL.md` | Código de ejecución vigente |
+| `5-DOCUMENTO-CAPACIDADES-DE-CAPTURA.md` | Límites de captura de comentarios según sesión de IG y crédito de Apify. **DEBE actualizarse con cada mejora que cambie esos límites (estrategia, memoria, plan).** Verificado el 2026-08-08 |
 
 ### DOCUMENTACION/Plan Inicial/ — Solo el origen del proyecto
 
@@ -38,6 +39,7 @@ DOCUMENTACION/
 ├── 2-DOCUMENTO-DISENO-ACTUAL.md
 ├── 3-DOCUMENTO-TAREAS-ACTUAL.md
 ├── 4-DOCUMENTO-EJECUCION-ACTUAL.md
+├── 5-DOCUMENTO-CAPACIDADES-DE-CAPTURA.md  ← Límites de captura (sesión + Apify)
 ├── Plan Inicial/                      ← Solo origen del proyecto (no modificar)
 ├── 01-Nombre-Componente/
 │   ├── plan-inicial/                  ← Documentación original del componente (NO MODIFICAR)
