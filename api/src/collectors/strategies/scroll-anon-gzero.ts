@@ -204,13 +204,20 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
   // Umbral bajado a 0.60 (margen real antes de los 512 Mi) y RSS propio como
   // doble señal (protege también sin cgroup, ej. localhost con DOM gigante).
   let reciclados = 0;
-  const RECICLADOS_MAXIMOS = 15;
-  const UMBRAL_RAM = 0.45;
+  const RECICLADOS_MAXIMOS = 25;
+  const UMBRAL_ANON = 0.62;
   const UMBRAL_RSS_MB = 400;
   const debeGobernarMemoria = (): boolean => {
     const m = memoriaContenedor();
-    if (m.limiteMb > 0 && m.usadoMb >= m.limiteMb * UMBRAL_RAM) {
-      console.log(`G-Zero [RAM Governor]: ${m.usadoMb}/${m.limiteMb} MB >= ${Math.round(UMBRAL_RAM * 100)}% -> reciclar contexto`);
+    // Señal principal: memoria ANÓNIMA del cgroup (la que provoca OOM).
+    // memory.current infla con page cache reclamable y disparaba en falso.
+    if (m.limiteMb > 0 && m.anonMb > 0 && m.anonMb >= m.limiteMb * UMBRAL_ANON) {
+      console.log(`G-Zero [RAM Governor]: anon ${m.anonMb}/${m.limiteMb} MB >= ${Math.round(UMBRAL_ANON * 100)}% -> reciclar contexto`);
+      return true;
+    }
+    // Señal B: uso total muy cerca del límite (por si anon no está disponible).
+    if (m.limiteMb > 0 && m.usadoMb >= m.limiteMb * 0.92) {
+      console.log(`G-Zero [RAM Governor]: total ${m.usadoMb}/${m.limiteMb} MB >= 92% -> reciclar contexto`);
       return true;
     }
     if (m.rssMb >= UMBRAL_RSS_MB) {
