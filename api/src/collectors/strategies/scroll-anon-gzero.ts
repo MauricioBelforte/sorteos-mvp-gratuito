@@ -54,47 +54,50 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
   const { url, autorExcluido, cantidadMaxima, cantidadEsperada } = ctx;
   const vistos = new Map<string, Participante>();
 
-  // ---- Contexto propio SIEMPRE (anónimo puro) ----
-  // CRÍTICO (2026-08-08): antes solo se abría contexto nuevo si había sesión.
-  // Sin sesión (prod) la recolección usaba la página del orquestador y el
-  // governor no podía liberar la RAM (reload no suelta el renderer) → OOM en
-  // posts de ~1000. Ahora SIEMPRE se usa un contexto dedicado cerrable.
-  // (2026-08-08, módulo 12): con SESION guardada se reutiliza el contexto del
-  // ORQUESTADOR (trae la sesión ya cargada): fue el flujo de la captura
-  // 611/1035 de la madrugada. El contexto propio NUEVO solo se crea sin
-  // sesión. El reciclado cierra el renderer compartido, no el de la sesión.
+  // ---- Contexto propio SIEMPRE (anónimo puro o con sesión vía storageState) ----
+  // CRÍTICO (2026-08-08): la RAM del arranque en prod free queda ~511/512 MB
+  // con el contexto del ORQUESTADOR navegado (carga imagen+DOM) + el G-Zero.
+  // Si el G-Zero reutiliza ese contexto, cada reciclaje (reload/scroll) no
+  // libera el renderer → governor en emergencia en cadena → clavado en ~17
+  // (verificado en vivo 2026-08-08, post 254). Solución: el G-Zero SIEMPRE
+  // abre su CONTEXTO PROPIO (con la sesión vía storageState si existe) y
+  // cierra el contexto del orquestador de entrada: libera su RAM y el
+  // reciclado luego cierra/recrea el propio liberando el renderer igual que
+  // anónimo, conservando la sesión a través del storageState.
   let page = ctx.page;
   let contextoAnonimo: import('playwright').BrowserContext | null = null;
   const tieneSesionGuardada =
     ctx.tieneSesion &&
     fs.existsSync(SESSION_PATH) &&
     fs.existsSync(path.join(process.cwd(), '.instagram-session-info.json'));
-  try {
+  const abrirContextoPropio = async (): Promise<void> => {
     const browser = ctx.page.context().browser();
-    if (browser) {
-      if (tieneSesionGuardada && !contextoAnonimo) {
-        // Reutilizar el contexto del orquestador: ya tiene la sesión en las
-        // cookies y la página inicial navegada. NO lo cerramos ni lo rearmamos
-        // (las estrategias posteriores lo usan vía ctx.page).
-        contextoAnonimo = ctx.page.context();
-        await bloquearRecursosPesados(contextoAnonimo);
-      } else if (!tieneSesionGuardada) {
-        contextoAnonimo = await browser.newContext();
-        await bloquearRecursosPesados(contextoAnonimo);
-        page = await contextoAnonimo.newPage();
-        await page.setExtraHTTPHeaders({
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        });
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-        await page.waitForTimeout(3000);
-        await aceptarConsentimiento(page);
-      }
-    }
+    if (!browser) return;
+    const contextoOrquestador = ctx.page.context();
+    await contextoOrquestador.close().catch(() => {});
+    contextoAnonimo = await browser.newContext(
+      tieneSesionGuardada ? { storageState: SESSION_PATH } : {}
+    );
+    await bloquearRecursosPesados(contextoAnonimo);
+    page = await contextoAnonimo.newPage();
+    await page.setExtraHTTPHeaders({
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForTimeout(3000);
+    await aceptarConsentimiento(page);
+  };
+  try {
+    await abrirContextoPropio();
   } catch (e) {
-    console.error('Instagram V2 [G-Zero]: no se pudo preparar el contexto, usando el actual:', (e as Error).message);
+    console.error('Instagram V2 [G-Zero]: no se pudo preparar el contexto propio, usando el del orquestador:', (e as Error).message);
     page = ctx.page;
     contextoAnonimo = ctx.page.context();
   }
+  // listo: el contexto del orquestador quedó cerrado; las estrategias
+  // posteriores (GraphQL/API/DOM) reciben ctx.page muerto y fallan con
+  // error capturado con su propio catch — el mejor resultado queda el del
+  // G-Zero, que es quien captura la totalidad con sesión.
   await bloquearRecursosPesados(page);
 
   const limpiar = (t: string): string => t.trim().replace(TIMESTAMP_RE, '').trim();
@@ -292,25 +295,23 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
     try {
       page.removeListener('response', onResponseGraphQL);
       const browser = ctx.page.context().browser();
-      if (contextoAnonimo && !tieneSesionGuardada) {
-        // Cerrar el contexto COMPLETO libera el renderer (poda dom no basta:
-        // la RAM del DOM gigante queda retenida en Chromium).
+      // SIEMPRE se recicla el contexto PROPIO (sea anónimo o con sesión):
+      // cerrar el contexto completo libera el renderer (poda del DOM no basta
+      // porque la RAM del DOM gigante queda retenida en Chromium) y el nuevo
+      // contexto se abre con el storageState de la sesión si existe.
+      if (contextoAnonimo) {
         await contextoAnonimo.close().catch(() => {});
         contextoAnonimo = null;
         if (browser) {
-          contextoAnonimo = await browser.newContext();
+          contextoAnonimo = await browser.newContext(
+            tieneSesionGuardada ? { storageState: SESSION_PATH } : {}
+          );
           await bloquearRecursosPesados(contextoAnonimo);
           page = await contextoAnonimo.newPage();
           await page.setExtraHTTPHeaders({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
           });
         }
-      } else if (tieneSesionGuardada) {
-        // Con sesión se recicla la PÁGINA (no el contexto: el contexto es el
-        // del ORQUESTADOR y las siguientes estrategias lo siguen usando; y el
-        // reciclado de contexto TAMPOCO libera la RAM de la web logueada,
-        // verificado). La sesión queda intacta en las cookies del contexto.
-        await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
       } else {
         await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
       }
@@ -431,7 +432,7 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
   } catch {
     /* noop */
   }
-  if (contextoAnonimo && !tieneSesionGuardada) {
+  if (contextoAnonimo && contextoAnonimo !== ctx.page.context()) {
     await contextoAnonimo.close().catch(() => {});
   }
   return [...vistos.values()].slice(0, cantidadMaxima);
