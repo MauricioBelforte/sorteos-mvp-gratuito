@@ -170,17 +170,22 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
   // CONSERVADOR: solo poda cuando hay MUCHOS nodos (posts grandes) y mantiene
   // suficientes para que IG siga enviando la carga (borrar la lista completa
   // corta el scroll infinito, verificado en local 2026-08-07).
-  const MAX_NODOS_DOM = 40;
+  const MAX_NODOS_DOM = 60;
   const NUM_NODOS_MANTENER = 12;
   const DOM_WIPE_CADA_ITER = 3;
   const podarDom = async (): Promise<void> => {
     try {
       await page.evaluate(
         (param) => {
-          const items = Array.from(document.querySelectorAll('ul ul > li, div[role="dialog"] ul > li, article ul > li'));
-          if (items.length <= param.max) return;
-          for (let j = items.length - param.mantener; j > 0; j--) {
-            items[0]?.remove();
+          // Robusto ante cambios de layout: sin depender de selectores de IG,
+          // se poda la lista con MÁS hijos del DOM (la de comentarios es
+          // siempre la más grande en un post con scroll infinito).
+          const uls = Array.from(document.querySelectorAll('ul'));
+          const lista = uls.sort((a, b) => b.children.length - a.children.length)[0];
+          if (!lista || lista.children.length <= param.max) return;
+          let aRemover = lista.children.length - param.mantener;
+          while (aRemover-- > 0) {
+            lista.firstElementChild?.remove();
           }
         },
         { max: MAX_NODOS_DOM, mantener: NUM_NODOS_MANTENER }
@@ -306,8 +311,11 @@ export async function estrategiaScrollAnonimoGZero(ctx: ContextoScraping): Promi
       continue;
     }
 
-    // DOM Wiping: cada 3 iteraciones se vacía la lista del renderer.
-    if (i > 0 && i % DOM_WIPE_CADA_ITER === 0) {
+    // DOM Wiping: en posts grandes se poda en CADA iteración (el DOM crece
+    // rápido y el renderer de Chromium es quien se come la RAM); en chicos
+    // alcanza cada 3. Nunca cae por debajo de NUM_NODOS_MANTENER.
+    const postGrande = !!cantidadEsperada && cantidadEsperada > 800;
+    if (i > 0 && (postGrande || i % DOM_WIPE_CADA_ITER === 0)) {
       await podarDom();
     }
 
